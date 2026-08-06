@@ -42,3 +42,17 @@ export async function togglePlanActive(id: string, active: boolean) {
   await db.plan.update({ where: { id }, data: { active } });
   revalidatePath("/planes");
 }
+
+export async function deletePlan(id: string) {
+  await requireOwner();
+
+  const membersCount = await db.member.count({ where: { planId: id } });
+  if (membersCount > 0) {
+    throw new Error(
+      "No se puede eliminar: hay socios con este plan. Desactivalo en cambio."
+    );
+  }
+
+  await db.plan.delete({ where: { id } });
+  revalidatePath("/planes");
+}

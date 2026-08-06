@@ -57,14 +57,35 @@ export default async function ConfiguracionPage() {
 
         <div>
           <label htmlFor="phone" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-            Teléfono
+            Teléfono / WhatsApp
           </label>
           <input
             id="phone"
             name="phone"
             defaultValue={gym.phone ?? ""}
+            placeholder="+54 9 11 1234-5678"
             className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Con código de país y de área, así funciona el botón de WhatsApp del sitio público.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="email" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            Email de contacto
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            defaultValue={gym.email ?? ""}
+            placeholder="hola@tugimnasio.com"
+            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ahí llegan las consultas del formulario de contacto de tu sitio público.
+          </p>
         </div>
 
         <div>

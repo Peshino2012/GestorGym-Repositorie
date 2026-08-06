@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       name: gym.name,
       address: gym.address,
       phone: gym.phone,
+      email: gym.email,
     },
     plans: plans.map((p) => ({
       id: p.id,

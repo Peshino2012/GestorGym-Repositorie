@@ -11,6 +11,7 @@ export async function updateGymSettings(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim() || "Mi Gimnasio";
   const address = String(formData.get("address") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
   const logo = formData.get("logo");
 
   let logoUrl: string | undefined;
@@ -21,8 +22,8 @@ export async function updateGymSettings(formData: FormData) {
 
   await db.gymSettings.upsert({
     where: { id: "main" },
-    create: { id: "main", name, address, phone, logoUrl },
-    update: { name, address, phone, ...(logoUrl ? { logoUrl } : {}) },
+    create: { id: "main", name, address, phone, email, logoUrl },
+    update: { name, address, phone, email, ...(logoUrl ? { logoUrl } : {}) },
   });
 
   revalidatePath("/configuracion");

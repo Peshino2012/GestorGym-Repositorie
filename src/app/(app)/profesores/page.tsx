@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireOwner } from "@/lib/authz";
 import { db } from "@/lib/db";
 import Avatar from "@/components/Avatar";
-import { createTrainer, toggleTrainerActive } from "./actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { createTrainer, toggleTrainerActive, deleteTrainer } from "./actions";
 
 export default async function ProfesoresPage() {
   await requireOwner();
@@ -50,6 +51,14 @@ export default async function ProfesoresPage() {
                 >
                   {t.active ? "Desactivar" : "Activar"}
                 </button>
+              </form>
+              <form action={deleteTrainer.bind(null, t.id)}>
+                <ConfirmSubmitButton
+                  confirmMessage={`¿Eliminar a ${t.name} definitivamente?`}
+                  className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                >
+                  Eliminar
+                </ConfirmSubmitButton>
               </form>
             </div>
           ))}

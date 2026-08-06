@@ -8,6 +8,7 @@ export async function getGymSettings() {
       name: "Mi Gimnasio",
       address: null,
       phone: null,
+      email: null,
       logoUrl: null,
     }
   );
