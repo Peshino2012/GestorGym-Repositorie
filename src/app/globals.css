@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 98%;
+  --surface: 0 0% 100%;
+  --foreground: 240 6% 10%;
+  --muted-foreground: 240 4% 46%;
+  --border: 240 6% 89%;
+
+  --primary: 6 100% 59%;
+  --primary-foreground: 0 0% 100%;
+
+  --success: 142 71% 40%;
+  --success-bg: 142 71% 95%;
+  --warning: 38 92% 42%;
+  --warning-bg: 38 92% 95%;
+  --danger: 0 72% 51%;
+  --danger-bg: 0 72% 96%;
+
+  --sidebar: 240 8% 12%;
+  --sidebar-foreground: 0 0% 92%;
+  --sidebar-muted: 240 5% 65%;
+  --sidebar-border: 240 8% 20%;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-background: hsl(var(--background));
+  --color-surface: hsl(var(--surface));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-bg: hsl(var(--success-bg));
+  --color-warning: hsl(var(--warning));
+  --color-warning-bg: hsl(var(--warning-bg));
+  --color-danger: hsl(var(--danger));
+  --color-danger-bg: hsl(var(--danger-bg));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-muted: hsl(var(--sidebar-muted));
+  --color-sidebar-border: hsl(var(--sidebar-border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sora), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes urgent-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent);
+  }
+}
+
+.animate-urgent-pulse {
+  animation: urgent-pulse 2s ease-in-out infinite;
 }

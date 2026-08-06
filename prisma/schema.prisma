@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  passwordHash       String
+  role               Role     @default(OWNER)
+  mustChangePassword Boolean  @default(false)
+  createdAt          DateTime @default(now())
+}
+
+enum Role {
+  OWNER
+  STAFF
+}
+
+model Plan {
+  id           String       @id @default(cuid())
+  name         String
+  price        Int
+  billingCycle BillingCycle @default(MONTHLY)
+  active       Boolean      @default(true)
+  members      Member[]
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+model Member {
+  id       String       @id @default(cuid())
+  name     String
+  email    String?
+  phone    String
+  joinedAt DateTime     @default(now())
+  status   MemberStatus @default(ACTIVE)
+  photoUrl String?
+
+  emergencyName  String?
+  emergencyPhone String?
+  emergencyNotes String?
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  payments Payment[]
+  checkIns CheckIn[]
+  bookings Booking[]
+  messages MessageLog[]
+}
+
+enum MemberStatus {
+  ACTIVE
+  OVERDUE
+  INACTIVE
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  amount    Int
+  dueDate   DateTime
+  paidAt    DateTime?
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+}
+
+model GymClass {
+  id          String @id @default(cuid())
+  name        String
+  instructor  String
+  dayOfWeek   Int
+  startTime   String
+  durationMin Int
+  capacity    Int
+
+  bookings Booking[]
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  status    BookingStatus @default(BOOKED)
+  createdAt DateTime      @default(now())
+
+  classId String
+  class   GymClass @relation(fields: [classId], references: [id])
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+
+  @@unique([classId, memberId])
+}
+
+enum BookingStatus {
+  BOOKED
+  WAITLIST
+  CANCELLED
+}
+
+model MessageLog {
+  id      String      @id @default(cuid())
+  type    MessageType
+  content String
+  sentAt  DateTime    @default(now())
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+}
+
+enum MessageType {
+  PAYMENT_REMINDER
+  RETENTION_ALERT
+}
+
+model GymSettings {
+  id      String  @id @default("main")
+  name    String  @default("PULSO Gym")
+  address String?
+  phone   String?
+  logoUrl String?
+}
+
+model Trainer {
+  id        String   @id @default(cuid())
+  name      String
+  specialty String?
+  bio       String?
+  photoUrl  String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GalleryPhoto {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+}

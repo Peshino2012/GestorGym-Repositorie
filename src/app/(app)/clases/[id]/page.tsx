@@ -1,0 +1,128 @@
+import { notFound } from "next/navigation";
+import { X } from "lucide-react";
+import { db } from "@/lib/db";
+import { DAYS } from "@/lib/format";
+import { bookMember, cancelBooking } from "../actions";
+
+export default async function ClaseDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const cls = await db.gymClass.findUnique({
+    where: { id },
+    include: {
+      bookings: {
+        where: { status: { in: ["BOOKED", "WAITLIST"] } },
+        include: { member: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  if (!cls) notFound();
+
+  const booked = cls.bookings.filter((b) => b.status === "BOOKED");
+  const waitlist = cls.bookings.filter((b) => b.status === "WAITLIST");
+  const takenIds = new Set(cls.bookings.map((b) => b.memberId));
+
+  const availableMembers = await db.member.findMany({
+    where: { id: { notIn: [...takenIds] }, status: { not: "INACTIVE" } },
+    orderBy: { name: "asc" },
+  });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="rounded-2xl border border-border bg-surface p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {DAYS[cls.dayOfWeek]} · {cls.startTime} · {cls.durationMin} min
+        </p>
+        <h1 className="mt-1 text-xl font-bold">{cls.name}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{cls.instructor}</p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-surface p-6">
+        <h2 className="font-semibold">Anotar socio</h2>
+        <form
+          action={bookMember.bind(null, cls.id)}
+          className="mt-4 flex flex-col gap-3 sm:flex-row"
+        >
+          <select
+            name="memberId"
+            required
+            className="flex-1 rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">Elegir socio...</option>
+            {availableMembers.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+          >
+            Reservar
+          </button>
+        </form>
+        {availableMembers.length === 0 && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Todos los socios activos ya están anotados en esta clase.
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-surface p-6">
+          <h2 className="font-semibold">
+            Confirmados ({booked.length}/{cls.capacity})
+          </h2>
+          <div className="mt-4 flex flex-col divide-y divide-border">
+            {booked.map((b) => (
+              <BookingRow key={b.id} name={b.member.name} bookingId={b.id} />
+            ))}
+            {booked.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Sin reservas confirmadas.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-6">
+          <h2 className="font-semibold">Lista de espera ({waitlist.length})</h2>
+          <div className="mt-4 flex flex-col divide-y divide-border">
+            {waitlist.map((b) => (
+              <BookingRow key={b.id} name={b.member.name} bookingId={b.id} />
+            ))}
+            {waitlist.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Sin lista de espera.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookingRow({ name, bookingId }: { name: string; bookingId: string }) {
+  return (
+    <div className="flex items-center justify-between py-3 text-sm">
+      <span className="font-medium">{name}</span>
+      <form action={cancelBooking.bind(null, bookingId)}>
+        <button
+          type="submit"
+          aria-label={`Cancelar reserva de ${name}`}
+          className="group flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-all duration-150 hover:bg-danger-bg hover:text-danger active:scale-90"
+        >
+          <X className="h-4 w-4 transition-transform duration-150 group-hover:rotate-90" />
+        </button>
+      </form>
+    </div>
+  );
+}

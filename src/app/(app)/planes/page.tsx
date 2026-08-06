@@ -1,0 +1,145 @@
+import { requireOwner } from "@/lib/authz";
+import { db } from "@/lib/db";
+import { formatCurrency } from "@/lib/format";
+import { createPlan, togglePlanActive } from "./actions";
+
+const CYCLE_LABEL: Record<string, string> = {
+  MONTHLY: "Mensual",
+  QUARTERLY: "Trimestral",
+  ANNUAL: "Anual",
+};
+
+export default async function PlanesPage() {
+  await requireOwner();
+
+  const plans = await db.plan.findMany({ orderBy: { price: "asc" } });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold">Planes</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Los planes activos son los que se muestran en tu sitio público.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface lg:col-span-2">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-background text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3 font-semibold">Nombre</th>
+                  <th className="px-5 py-3 font-semibold">Precio</th>
+                  <th className="hidden px-5 py-3 font-semibold sm:table-cell">Ciclo</th>
+                  <th className="px-5 py-3 font-semibold">Estado</th>
+                  <th className="px-5 py-3 text-right font-semibold">Acción</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {plans.map((p) => (
+                  <tr key={p.id} className="group/row transition-colors hover:bg-background">
+                    <td className="relative whitespace-nowrap px-5 py-3 font-medium before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:origin-top before:scale-y-0 before:bg-primary before:transition-transform before:duration-300 before:content-[''] group-hover/row:before:scale-y-100">
+                      <a href={`/planes/${p.id}/editar`} className="hover:text-primary">
+                        {p.name}
+                      </a>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">
+                      {formatCurrency(p.price)}
+                    </td>
+                    <td className="hidden whitespace-nowrap px-5 py-3 text-muted-foreground sm:table-cell">
+                      {CYCLE_LABEL[p.billingCycle]}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          p.active
+                            ? "bg-success-bg text-success"
+                            : "bg-background text-muted-foreground"
+                        }`}
+                      >
+                        {p.active ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <form
+                        action={togglePlanActive.bind(null, p.id, !p.active)}
+                        className="inline"
+                      >
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
+                        >
+                          {p.active ? "Desactivar" : "Activar"}
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+                {plans.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
+                      Todavía no creaste ningún plan.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-6">
+          <h2 className="font-semibold">Nuevo plan</h2>
+          <form action={createPlan} className="mt-4 flex flex-col gap-3">
+            <div>
+              <label htmlFor="name" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Nombre
+              </label>
+              <input
+                id="name"
+                name="name"
+                required
+                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="price" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Precio
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min={0}
+                step={100}
+                required
+                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="billingCycle" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Ciclo de facturación
+              </label>
+              <select
+                id="billingCycle"
+                name="billingCycle"
+                defaultValue="MONTHLY"
+                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="MONTHLY">Mensual</option>
+                <option value="QUARTERLY">Trimestral</option>
+                <option value="ANNUAL">Anual</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="mt-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+            >
+              Crear plan
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
