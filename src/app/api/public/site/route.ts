@@ -15,7 +15,10 @@ export async function GET(req: NextRequest) {
     db.galleryPhoto.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
-  const toAbsolute = (url: string | null) => (url ? `${origin}${url}` : null);
+  // Blob storage returns absolute URLs already; local-disk uploads return
+  // relative /uploads/... paths that need the request origin prefixed.
+  const toAbsolute = (url: string | null) =>
+    url ? (url.startsWith("http") ? url : `${origin}${url}`) : null;
 
   return NextResponse.json({
     gym: {
