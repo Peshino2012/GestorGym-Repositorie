@@ -24,6 +24,42 @@ export async function createClass(formData: FormData) {
   redirect("/clases");
 }
 
+export async function updateClass(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const instructor = String(formData.get("instructor") ?? "").trim();
+  const dayOfWeek = Number(formData.get("dayOfWeek"));
+  const startTime = String(formData.get("startTime") ?? "");
+  const durationMin = Number(formData.get("durationMin"));
+  const capacity = Number(formData.get("capacity"));
+
+  if (!name || !instructor || !startTime || !capacity) {
+    throw new Error("Completá todos los campos");
+  }
+
+  await db.gymClass.update({
+    where: { id },
+    data: { name, instructor, dayOfWeek, startTime, durationMin, capacity },
+  });
+
+  revalidatePath(`/clases/${id}`);
+  revalidatePath("/clases");
+  redirect(`/clases/${id}`);
+}
+
+export async function deleteClass(id: string) {
+  const activeBookings = await db.booking.count({
+    where: { classId: id, status: { in: ["BOOKED", "WAITLIST"] } },
+  });
+  if (activeBookings > 0) {
+    throw new Error("No se puede eliminar: hay socios anotados en esta clase.");
+  }
+
+  await db.gymClass.delete({ where: { id } });
+
+  revalidatePath("/clases");
+  redirect("/clases");
+}
+
 export async function bookMember(classId: string, formData: FormData) {
   const memberId = String(formData.get("memberId") ?? "");
   if (!memberId) throw new Error("Elegí un socio");
