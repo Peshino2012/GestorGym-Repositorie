@@ -1,7 +1,8 @@
 import { requireOwner } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
-import { createPlan, togglePlanActive } from "./actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { createPlan, togglePlanActive, deletePlan } from "./actions";
 
 const CYCLE_LABEL: Record<string, string> = {
   MONTHLY: "Mensual",
@@ -12,7 +13,10 @@ const CYCLE_LABEL: Record<string, string> = {
 export default async function PlanesPage() {
   await requireOwner();
 
-  const plans = await db.plan.findMany({ orderBy: { price: "asc" } });
+  const plans = await db.plan.findMany({
+    orderBy: { price: "asc" },
+    include: { _count: { select: { members: true } } },
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,17 +66,26 @@ export default async function PlanesPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <form
-                        action={togglePlanActive.bind(null, p.id, !p.active)}
-                        className="inline"
-                      >
-                        <button
-                          type="submit"
-                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
-                        >
-                          {p.active ? "Desactivar" : "Activar"}
-                        </button>
-                      </form>
+                      <div className="flex justify-end gap-2">
+                        <form action={togglePlanActive.bind(null, p.id, !p.active)}>
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
+                          >
+                            {p.active ? "Desactivar" : "Activar"}
+                          </button>
+                        </form>
+                        {p._count.members === 0 && (
+                          <form action={deletePlan.bind(null, p.id)}>
+                            <ConfirmSubmitButton
+                              confirmMessage={`¿Eliminar el plan "${p.name}" definitivamente?`}
+                              className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                            >
+                              Eliminar
+                            </ConfirmSubmitButton>
+                          </form>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

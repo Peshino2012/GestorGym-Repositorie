@@ -65,3 +65,9 @@ export async function toggleTrainerActive(id: string, active: boolean) {
   await db.trainer.update({ where: { id }, data: { active } });
   revalidatePath("/profesores");
 }
+
+export async function deleteTrainer(id: string) {
+  await requireOwner();
+  await db.trainer.delete({ where: { id } });
+  revalidatePath("/profesores");
+}
