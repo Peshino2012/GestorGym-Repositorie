@@ -1,8 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { db } from "@/lib/db";
 
 export type ChangePasswordState = { error?: string; success?: boolean };
@@ -31,13 +30,15 @@ export async function changePassword(
   });
 
   // Clear the session cookie so the next login mints a fresh token with the
-  // updated mustChangePassword flag. The client does a hard navigation to
-  // /login afterwards — a soft/RSC redirect from here kept re-evaluating
-  // against the still-cached session and bouncing back to this page.
-  const cookieStore = await cookies();
-  for (const c of cookieStore.getAll()) {
-    cookieStore.delete(c.name);
-  }
+  // updated mustChangePassword flag. Manually deleting cookies here doesn't
+  // work in production: NextAuth's session cookie is __Secure-prefixed over
+  // HTTPS, and browsers silently reject a deletion Set-Cookie for a
+  // __Secure- name unless it also carries the Secure attribute — so
+  // NextAuth's own signOut (which sets that correctly) has to do this
+  // instead of a manual cookies().delete() loop. The client does a hard
+  // navigation to /login afterwards — a soft/RSC redirect from here kept
+  // re-evaluating against the still-cached session and bouncing back here.
+  await signOut({ redirect: false });
 
   return { success: true };
 }
