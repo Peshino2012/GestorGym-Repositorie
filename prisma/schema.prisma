@@ -52,6 +52,8 @@ model Member {
   emergencyPhone String?
   emergencyNotes String?
 
+  riskDismissedUntil DateTime?
+
   planId String
   plan   Plan   @relation(fields: [planId], references: [id])
 

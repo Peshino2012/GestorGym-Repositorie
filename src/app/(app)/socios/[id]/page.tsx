@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Mail, Phone, CalendarPlus, IdCard, ShieldAlert } from "lucide-react";
+import { Mail, Phone, CalendarPlus, IdCard, ShieldAlert, Pencil } from "lucide-react";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/StatusBadge";
 import Avatar from "@/components/Avatar";
 import { registerCheckIn } from "../actions";
+import { undoMarkPaid } from "../../cobros/actions";
 
 export default async function SocioDetailPage({
   params,
@@ -13,6 +15,8 @@ export default async function SocioDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await auth();
+  const isOwner = session?.user?.role === "OWNER";
 
   const member = await db.member.findUnique({
     where: { id },
@@ -52,6 +56,14 @@ export default async function SocioDetailPage({
         </div>
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          {isOwner && (
+            <Link
+              href={`/socios/${member.id}/editar`}
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+            >
+              <Pencil className="h-4 w-4" /> Editar
+            </Link>
+          )}
           <Link
             href={`/socios/${member.id}/credencial`}
             className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
@@ -92,7 +104,19 @@ export default async function SocioDetailPage({
                   <p className="font-medium">{formatCurrency(p.amount)}</p>
                   <p className="text-xs text-muted-foreground">Vence {formatDate(p.dueDate)}</p>
                 </div>
-                <StatusBadge status={p.status} />
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={p.status} />
+                  {p.status === "PAID" && (
+                    <form action={undoMarkPaid.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                      >
+                        Deshacer
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
             {member.payments.length === 0 && (

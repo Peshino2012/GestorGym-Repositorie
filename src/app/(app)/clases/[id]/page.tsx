@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { X, Pencil, Trash2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { DAYS } from "@/lib/format";
-import { bookMember, cancelBooking } from "../actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { bookMember, cancelBooking, deleteClass } from "../actions";
 
 export default async function ClaseDetailPage({
   params,
@@ -35,12 +37,32 @@ export default async function ClaseDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-border bg-surface p-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {DAYS[cls.dayOfWeek]} · {cls.startTime} · {cls.durationMin} min
-        </p>
-        <h1 className="mt-1 text-xl font-bold">{cls.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{cls.instructor}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border bg-surface p-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {DAYS[cls.dayOfWeek]} · {cls.startTime} · {cls.durationMin} min
+          </p>
+          <h1 className="mt-1 text-xl font-bold">{cls.name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{cls.instructor}</p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href={`/clases/${cls.id}/editar`}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+          >
+            <Pencil className="h-4 w-4" /> Editar
+          </Link>
+          {cls.bookings.length === 0 && (
+            <form action={deleteClass.bind(null, cls.id)}>
+              <ConfirmSubmitButton
+                confirmMessage={`¿Eliminar la clase "${cls.name}" definitivamente?`}
+                className="flex items-center gap-1.5 rounded-lg border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" /> Eliminar
+              </ConfirmSubmitButton>
+            </form>
+          )}
+        </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-surface p-6">

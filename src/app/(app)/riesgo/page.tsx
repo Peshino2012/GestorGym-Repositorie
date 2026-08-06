@@ -1,8 +1,8 @@
-import { MessageCircle, Phone } from "lucide-react";
+import { MessageCircle, Phone, EyeOff } from "lucide-react";
 import { computeAtRiskMembers } from "@/lib/retention";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
-import { sendRetentionAlert } from "./actions";
+import { sendRetentionAlert, dismissRisk } from "./actions";
 
 export default async function RiesgoPage() {
   const [atRisk, recentMessages] = await Promise.all([
@@ -57,16 +57,29 @@ export default async function RiesgoPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <form action={sendRetentionAlert.bind(null, m.id)} className="flex justify-end">
-                      <button
-                        type="submit"
-                        aria-label={`Contactar a ${m.name}`}
-                        className="group flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
-                        <span className="hidden sm:inline">Contactar</span>
-                      </button>
-                    </form>
+                    <div className="flex justify-end gap-2">
+                      <form action={sendRetentionAlert.bind(null, m.id)}>
+                        <button
+                          type="submit"
+                          aria-label={`Contactar a ${m.name}`}
+                          className="group flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
+                          <span className="hidden sm:inline">Contactar</span>
+                        </button>
+                      </form>
+                      <form action={dismissRisk.bind(null, m.id)}>
+                        <button
+                          type="submit"
+                          aria-label={`Descartar a ${m.name} de la lista de riesgo`}
+                          title="Ya lo contacté por otro medio — no mostrar por 14 días"
+                          className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-background sm:px-3"
+                        >
+                          <EyeOff className="h-3.5 w-3.5 shrink-0" />
+                          <span className="hidden sm:inline">Descartar</span>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -16,12 +16,15 @@ export type AtRiskMember = {
  * 14 days. Deliberately simple/explainable — not a predictive model.
  */
 export async function computeAtRiskMembers(): Promise<AtRiskMember[]> {
+  const now = new Date();
   const members = await db.member.findMany({
-    where: { status: { not: "INACTIVE" } },
+    where: {
+      status: { not: "INACTIVE" },
+      OR: [{ riskDismissedUntil: null }, { riskDismissedUntil: { lt: now } }],
+    },
     include: { checkIns: true },
   });
 
-  const now = new Date();
   const recentCutoff = subDays(now, 14);
 
   const results: AtRiskMember[] = [];
