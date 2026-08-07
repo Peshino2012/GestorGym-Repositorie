@@ -1,6 +1,9 @@
 import { getGymSettings } from "@/lib/gymSettings";
 import RegistroIngreso from "@/components/RegistroIngreso";
 
+// Must reflect the live checkinEnabled toggle and gym name — never prerender.
+export const dynamic = "force-dynamic";
+
 export default async function RegistroPage() {
   const gym = await getGymSettings();
 
