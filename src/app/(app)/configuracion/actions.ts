@@ -13,6 +13,7 @@ export async function updateGymSettings(formData: FormData) {
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const logo = formData.get("logo");
+  const checkinEnabled = formData.get("checkinEnabled") === "on";
 
   let logoUrl: string | undefined;
   if (logo instanceof File && logo.size > 0) {
@@ -22,8 +23,8 @@ export async function updateGymSettings(formData: FormData) {
 
   await db.gymSettings.upsert({
     where: { id: "main" },
-    create: { id: "main", name, address, phone, email, logoUrl },
-    update: { name, address, phone, email, ...(logoUrl ? { logoUrl } : {}) },
+    create: { id: "main", name, address, phone, email, logoUrl, checkinEnabled },
+    update: { name, address, phone, email, checkinEnabled, ...(logoUrl ? { logoUrl } : {}) },
   });
 
   revalidatePath("/configuracion");

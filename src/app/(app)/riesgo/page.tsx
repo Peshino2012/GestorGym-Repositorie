@@ -2,6 +2,8 @@ import { MessageCircle, Phone, EyeOff } from "lucide-react";
 import { computeAtRiskMembers } from "@/lib/retention";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { retentionAlertMessage } from "@/lib/messages";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { sendRetentionAlert, dismissRisk } from "./actions";
 
 export default async function RiesgoPage() {
@@ -59,14 +61,14 @@ export default async function RiesgoPage() {
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-2">
                       <form action={sendRetentionAlert.bind(null, m.id)}>
-                        <button
-                          type="submit"
-                          aria-label={`Contactar a ${m.name}`}
+                        <WhatsAppButton
+                          phone={m.phone}
+                          message={retentionAlertMessage(m.name)}
                           className="group flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
                         >
                           <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
                           <span className="hidden sm:inline">Contactar</span>
-                        </button>
+                        </WhatsAppButton>
                       </form>
                       <form action={dismissRisk.bind(null, m.id)}>
                         <button
@@ -98,8 +100,8 @@ export default async function RiesgoPage() {
       <div className="rounded-2xl border border-border bg-surface p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">Contactos enviados</h2>
-          <span className="rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning">
-            Simulado — no envía WhatsApp real todavía
+          <span className="rounded-full bg-success-bg px-2.5 py-1 text-xs font-semibold text-success">
+            Abre WhatsApp con el mensaje listo para enviar
           </span>
         </div>
         <div className="mt-4 flex flex-col divide-y divide-border">

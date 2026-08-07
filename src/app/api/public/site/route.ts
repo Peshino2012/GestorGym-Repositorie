@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
       name: p.name,
       price: p.price,
       billingCycle: p.billingCycle,
+      features: p.features
+        ? p.features.split("\n").map((f) => f.trim()).filter(Boolean)
+        : [],
     })),
     trainers: trainers.map((t) => ({
       id: t.id,

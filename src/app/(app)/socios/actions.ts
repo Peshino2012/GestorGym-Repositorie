@@ -19,6 +19,7 @@ export async function createMember(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const dni = String(formData.get("dni") ?? "").trim();
   const planId = String(formData.get("planId") ?? "");
   const emergencyName = String(formData.get("emergencyName") ?? "").trim();
   const emergencyPhone = String(formData.get("emergencyPhone") ?? "").trim();
@@ -36,6 +37,7 @@ export async function createMember(formData: FormData) {
       name,
       phone,
       email: email || null,
+      dni: dni || null,
       planId,
       status: "ACTIVE",
       emergencyName: emergencyName || null,
@@ -69,6 +71,7 @@ export async function updateMember(id: string, formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const dni = String(formData.get("dni") ?? "").trim();
   const planId = String(formData.get("planId") ?? "");
   const status = String(formData.get("status") ?? "ACTIVE") as MemberStatus;
   const emergencyName = String(formData.get("emergencyName") ?? "").trim();
@@ -91,6 +94,7 @@ export async function updateMember(id: string, formData: FormData) {
       name,
       phone,
       email: email || null,
+      dni: dni || null,
       planId,
       status,
       emergencyName: emergencyName || null,
@@ -105,4 +109,31 @@ export async function updateMember(id: string, formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/riesgo");
   redirect(`/socios/${id}`);
+}
+
+export async function archiveMember(id: string) {
+  await requireOwner();
+  await db.member.update({ where: { id }, data: { archivedAt: new Date() } });
+  revalidatePath("/socios");
+  revalidatePath("/socios/archivados");
+}
+
+export async function unarchiveMember(id: string) {
+  await requireOwner();
+  await db.member.update({ where: { id }, data: { archivedAt: null } });
+  revalidatePath("/socios");
+  revalidatePath("/socios/archivados");
+}
+
+export async function deleteMemberPermanently(id: string) {
+  await requireOwner();
+
+  const member = await db.member.findUniqueOrThrow({ where: { id } });
+  if (!member.archivedAt) {
+    throw new Error("Archivá al socio primero antes de eliminarlo definitivamente.");
+  }
+
+  await db.member.delete({ where: { id } });
+  revalidatePath("/socios/archivados");
+  redirect("/socios/archivados");
 }

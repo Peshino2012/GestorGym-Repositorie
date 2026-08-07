@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { requireOwner } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
@@ -44,9 +46,7 @@ export default async function PlanesPage() {
                 {plans.map((p) => (
                   <tr key={p.id} className="group/row transition-colors hover:bg-background">
                     <td className="relative whitespace-nowrap px-5 py-3 font-medium before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:origin-top before:scale-y-0 before:bg-primary before:transition-transform before:duration-300 before:content-[''] group-hover/row:before:scale-y-100">
-                      <a href={`/planes/${p.id}/editar`} className="hover:text-primary">
-                        {p.name}
-                      </a>
+                      {p.name}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">
                       {formatCurrency(p.price)}
@@ -67,6 +67,13 @@ export default async function PlanesPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/planes/${p.id}/editar`}
+                          aria-label={`Editar ${p.name}`}
+                          className="flex items-center justify-center rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Link>
                         <form action={togglePlanActive.bind(null, p.id, !p.active)}>
                           <button
                             type="submit"
@@ -75,7 +82,7 @@ export default async function PlanesPage() {
                             {p.active ? "Desactivar" : "Activar"}
                           </button>
                         </form>
-                        {p._count.members === 0 && (
+                        {p._count.members === 0 ? (
                           <form action={deletePlan.bind(null, p.id)}>
                             <ConfirmSubmitButton
                               confirmMessage={`¿Eliminar el plan "${p.name}" definitivamente?`}
@@ -84,6 +91,15 @@ export default async function PlanesPage() {
                               Eliminar
                             </ConfirmSubmitButton>
                           </form>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            title={`No se puede eliminar: ${p._count.members} socio(s) tienen este plan. Desactivalo en cambio.`}
+                            className="cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+                          >
+                            Eliminar
+                          </button>
                         )}
                       </div>
                     </td>
@@ -143,6 +159,21 @@ export default async function PlanesPage() {
                 <option value="QUARTERLY">Trimestral</option>
                 <option value="ANNUAL">Anual</option>
               </select>
+            </div>
+            <div>
+              <label htmlFor="features" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Qué incluye (opcional)
+              </label>
+              <textarea
+                id="features"
+                name="features"
+                rows={4}
+                placeholder={"Acceso a sala de musculación\n2 clases grupales por semana\nEvaluación física inicial"}
+                className="w-full resize-none rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Una línea por beneficio — así aparecen en tu sitio público.
+              </p>
             </div>
             <button
               type="submit"

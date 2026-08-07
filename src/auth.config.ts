@@ -2,6 +2,10 @@ import type { NextAuthConfig } from "next-auth";
 
 const CHANGE_PASSWORD_PATH = "/perfil/cambiar-password";
 
+// Physical, unattended screen (no login) — a member types their DNI to
+// register attendance. Meant to run on a tablet fixed at the gym entrance.
+const PUBLIC_PATH_PREFIX = "/registro";
+
 export const authConfig = {
   pages: { signIn: "/login" },
   session: { strategy: "jwt" },
@@ -12,6 +16,9 @@ export const authConfig = {
       const pathname = request.nextUrl.pathname;
       const isLoginPage = pathname === "/login";
       const isChangePasswordPage = pathname === CHANGE_PASSWORD_PATH;
+      const isPublicPage = pathname === PUBLIC_PATH_PREFIX || pathname.startsWith(`${PUBLIC_PATH_PREFIX}/`);
+
+      if (isPublicPage) return true;
 
       if (isLoginPage) {
         if (isLoggedIn) {

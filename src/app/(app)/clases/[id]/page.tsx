@@ -52,7 +52,7 @@ export default async function ClaseDetailPage({
           >
             <Pencil className="h-4 w-4" /> Editar
           </Link>
-          {cls.bookings.length === 0 && (
+          {cls.bookings.length === 0 ? (
             <form action={deleteClass.bind(null, cls.id)}>
               <ConfirmSubmitButton
                 confirmMessage={`¿Eliminar la clase "${cls.name}" definitivamente?`}
@@ -61,6 +61,15 @@ export default async function ClaseDetailPage({
                 <Trash2 className="h-4 w-4" /> Eliminar
               </ConfirmSubmitButton>
             </form>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title={`No se puede eliminar: hay ${cls.bookings.length} socio(s) anotados. Sacalos de la lista primero.`}
+              className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground opacity-50"
+            >
+              <Trash2 className="h-4 w-4" /> Eliminar
+            </button>
           )}
         </div>
       </div>

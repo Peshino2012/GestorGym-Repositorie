@@ -101,6 +101,21 @@ export default async function ConfiguracionPage() {
           />
         </div>
 
+        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+          <span>
+            <span className="block text-sm font-medium">Registro de ingreso por DNI</span>
+            <span className="block text-xs text-muted-foreground">
+              Habilita la pantalla de <code>/registro</code> para una tablet en la entrada.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            name="checkinEnabled"
+            defaultChecked={gym.checkinEnabled}
+            className="h-5 w-9 shrink-0 accent-primary"
+          />
+        </label>
+
         <button
           type="submit"
           className="mt-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"

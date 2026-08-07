@@ -82,6 +82,22 @@ export default async function EditarSocioPage({
             className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
+        <div>
+          <label htmlFor="dni" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            DNI
+          </label>
+          <input
+            id="dni"
+            name="dni"
+            inputMode="numeric"
+            defaultValue={member.dni ?? ""}
+            placeholder="12345678"
+            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Necesario para que use el registro de ingreso por DNI.
+          </p>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
