@@ -16,3 +16,10 @@ export async function requireClassesEnabled() {
     redirect("/dashboard");
   }
 }
+
+export async function requireHorariosEnabled() {
+  const gym = await getGymSettings();
+  if (!gym.horariosEnabled) {
+    redirect("/dashboard");
+  }
+}

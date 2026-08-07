@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Pencil, Sunrise, Sun, Sunset, Moon, Dumbbell, CalendarDays } from "lucide-react";
-import { requireOwner, requireClassesEnabled } from "@/lib/authz";
+import { requireOwner, requireHorariosEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { createBlock, deleteBlock } from "./actions";
@@ -17,7 +17,7 @@ const ICON_MAP: Record<string, typeof Sun> = {
 
 export default async function HorariosPage() {
   await requireOwner();
-  await requireClassesEnabled();
+  await requireHorariosEnabled();
 
   const blocks = await db.scheduleBlock.findMany({
     orderBy: { order: "asc" },

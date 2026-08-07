@@ -120,13 +120,28 @@ export default async function ConfiguracionPage() {
           <span>
             <span className="block text-sm font-medium">Clases</span>
             <span className="block text-xs text-muted-foreground">
-              Habilita el módulo de Clases (agenda, reservas) y su horario en el sitio público.
+              Habilita el módulo de Clases (agenda, reservas) y la sección &quot;Nuestras clases&quot; en el sitio público.
             </span>
           </span>
           <input
             type="checkbox"
             name="classesEnabled"
             defaultChecked={gym.classesEnabled}
+            className="h-5 w-9 shrink-0 accent-primary"
+          />
+        </label>
+
+        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+          <span>
+            <span className="block text-sm font-medium">Horarios</span>
+            <span className="block text-xs text-muted-foreground">
+              Habilita la página de Horarios en el panel y la sección de horarios en el sitio público.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            name="horariosEnabled"
+            defaultChecked={gym.horariosEnabled}
             className="h-5 w-9 shrink-0 accent-primary"
           />
         </label>

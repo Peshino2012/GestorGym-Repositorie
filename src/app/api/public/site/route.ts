@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
       caption: g.caption,
     })),
     classesEnabled: gym.classesEnabled,
+    horariosEnabled: gym.horariosEnabled,
     scheduleBlocks: scheduleBlocks.map((b) => ({
       id: b.id,
       title: b.title,

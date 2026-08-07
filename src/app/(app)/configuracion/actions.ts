@@ -15,6 +15,7 @@ export async function updateGymSettings(formData: FormData) {
   const logo = formData.get("logo");
   const checkinEnabled = formData.get("checkinEnabled") === "on";
   const classesEnabled = formData.get("classesEnabled") === "on";
+  const horariosEnabled = formData.get("horariosEnabled") === "on";
 
   let logoUrl: string | undefined;
   if (logo instanceof File && logo.size > 0) {
@@ -24,7 +25,17 @@ export async function updateGymSettings(formData: FormData) {
 
   await db.gymSettings.upsert({
     where: { id: "main" },
-    create: { id: "main", name, address, phone, email, logoUrl, checkinEnabled, classesEnabled },
+    create: {
+      id: "main",
+      name,
+      address,
+      phone,
+      email,
+      logoUrl,
+      checkinEnabled,
+      classesEnabled,
+      horariosEnabled,
+    },
     update: {
       name,
       address,
@@ -32,6 +43,7 @@ export async function updateGymSettings(formData: FormData) {
       email,
       checkinEnabled,
       classesEnabled,
+      horariosEnabled,
       ...(logoUrl ? { logoUrl } : {}),
     },
   });

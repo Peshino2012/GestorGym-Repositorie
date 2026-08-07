@@ -19,34 +19,39 @@ import {
 } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, ownerOnly: false, requiresClasses: false },
-  { href: "/socios", label: "Socios", icon: Users, ownerOnly: false, requiresClasses: false },
-  { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requiresClasses: false },
-  { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requiresClasses: false },
-  { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requiresClasses: true },
-  { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: true, requiresClasses: true },
-  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requiresClasses: false },
-  { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requiresClasses: false },
-  { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requiresClasses: false },
-  { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true, requiresClasses: false },
-  { href: "/configuracion", label: "Configuración", icon: Settings, ownerOnly: true, requiresClasses: false },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, ownerOnly: false, requires: null },
+  { href: "/socios", label: "Socios", icon: Users, ownerOnly: false, requires: null },
+  { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requires: null },
+  { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requires: null },
+  { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requires: "classes" as const },
+  { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: true, requires: "horarios" as const },
+  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requires: null },
+  { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requires: null },
+  { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requires: null },
+  { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true, requires: null },
+  { href: "/configuracion", label: "Configuración", icon: Settings, ownerOnly: true, requires: null },
 ];
 
 export default function Sidebar({
   role,
   classesEnabled = false,
+  horariosEnabled = false,
   open = false,
   onClose,
 }: {
   role?: "OWNER" | "STAFF";
   classesEnabled?: boolean;
+  horariosEnabled?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const items = NAV.filter(
-    (item) => (!item.ownerOnly || role === "OWNER") && (!item.requiresClasses || classesEnabled)
-  );
+  const items = NAV.filter((item) => {
+    if (item.ownerOnly && role !== "OWNER") return false;
+    if (item.requires === "classes" && !classesEnabled) return false;
+    if (item.requires === "horarios" && !horariosEnabled) return false;
+    return true;
+  });
 
   return (
     <aside
