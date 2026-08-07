@@ -10,11 +10,12 @@ function parsePlanForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const price = Number(formData.get("price"));
   const billingCycle = String(formData.get("billingCycle") ?? "MONTHLY") as BillingCycle;
+  const features = String(formData.get("features") ?? "").trim();
 
   if (!name) throw new Error("El nombre es obligatorio");
   if (!Number.isFinite(price) || price < 0) throw new Error("El precio no es válido");
 
-  return { name, price: Math.round(price), billingCycle };
+  return { name, price: Math.round(price), billingCycle, features: features || null };
 }
 
 export async function createPlan(formData: FormData) {

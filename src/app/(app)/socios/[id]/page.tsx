@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Mail, Phone, CalendarPlus, IdCard, ShieldAlert, Pencil } from "lucide-react";
+import { Mail, Phone, CalendarPlus, IdCard, ShieldAlert, Pencil, Archive } from "lucide-react";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/StatusBadge";
 import Avatar from "@/components/Avatar";
-import { registerCheckIn } from "../actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { registerCheckIn, archiveMember } from "../actions";
 import { undoMarkPaid } from "../../cobros/actions";
 
 export default async function SocioDetailPage({
@@ -57,12 +58,22 @@ export default async function SocioDetailPage({
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           {isOwner && (
-            <Link
-              href={`/socios/${member.id}/editar`}
-              className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
-            >
-              <Pencil className="h-4 w-4" /> Editar
-            </Link>
+            <>
+              <Link
+                href={`/socios/${member.id}/editar`}
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+              >
+                <Pencil className="h-4 w-4" /> Editar
+              </Link>
+              <form action={archiveMember.bind(null, member.id)}>
+                <ConfirmSubmitButton
+                  confirmMessage={`¿Archivar a ${member.name}? No va a aparecer más en la lista de socios, pero podés restaurarlo desde "Archivados".`}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+                >
+                  <Archive className="h-4 w-4" /> Archivar
+                </ConfirmSubmitButton>
+              </form>
+            </>
           )}
           <Link
             href={`/socios/${member.id}/credencial`}

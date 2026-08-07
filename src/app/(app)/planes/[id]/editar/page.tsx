@@ -75,6 +75,21 @@ export default async function EditarPlanPage({
             <option value="ANNUAL">Anual</option>
           </select>
         </div>
+        <div>
+          <label htmlFor="features" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            Qué incluye (opcional)
+          </label>
+          <textarea
+            id="features"
+            name="features"
+            rows={4}
+            defaultValue={plan.features ?? ""}
+            className="w-full resize-none rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Una línea por beneficio — así aparecen en tu sitio público.
+          </p>
+        </div>
         <button
           type="submit"
           className="mt-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"

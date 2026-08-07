@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { requireOwner } from "@/lib/authz";
 import { db } from "@/lib/db";
 import Avatar from "@/components/Avatar";
@@ -28,13 +29,18 @@ export default async function ProfesoresPage() {
             >
               <Avatar name={t.name} photoUrl={t.photoUrl} size="md" />
               <div className="flex-1">
-                <Link href={`/profesores/${t.id}/editar`} className="font-semibold hover:text-primary">
-                  {t.name}
-                </Link>
+                <p className="font-semibold">{t.name}</p>
                 {t.specialty && (
                   <p className="text-xs text-muted-foreground">{t.specialty}</p>
                 )}
               </div>
+              <Link
+                href={`/profesores/${t.id}/editar`}
+                aria-label={`Editar ${t.name}`}
+                className="flex items-center justify-center rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Link>
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                   t.active

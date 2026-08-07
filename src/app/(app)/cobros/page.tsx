@@ -1,19 +1,20 @@
 import Link from "next/link";
-import { CheckCircle2, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle2, MessageCircle, Pencil, Trash2, Undo2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getPaymentStatusBreakdown } from "@/lib/stats";
+import { paymentReminderMessage } from "@/lib/messages";
 import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
-import { markPaid, sendPaymentReminder, createPayment, deletePayment } from "./actions";
+import { markPaid, sendPaymentReminder, createPayment, deletePayment, undoMarkPaid } from "./actions";
 
 export default async function CobrosPage() {
   const [payments, recentMessages, statusBreakdown, members] = await Promise.all([
     db.payment.findMany({
-      where: { status: { in: ["PENDING", "OVERDUE"] } },
       include: { member: true },
-      orderBy: { dueDate: "asc" },
+      orderBy: { dueDate: "desc" },
     }),
     db.messageLog.findMany({
       where: { type: "PAYMENT_REMINDER" },
@@ -29,9 +30,7 @@ export default async function CobrosPage() {
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-bold">Cobros</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {payments.length} pagos pendientes o vencidos
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{payments.length} pagos</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -62,41 +61,56 @@ export default async function CobrosPage() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-2">
-                      <form action={sendPaymentReminder.bind(null, p.id)}>
-                        <button
-                          type="submit"
-                          aria-label="Enviar recordatorio por WhatsApp"
-                          className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] sm:px-3"
-                        >
-                          <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
-                          <span className="hidden sm:inline">WhatsApp</span>
-                        </button>
-                      </form>
-                      <form action={markPaid.bind(null, p.id)}>
-                        <button
-                          type="submit"
-                          aria-label="Marcar como pagado"
-                          className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                          <span className="hidden sm:inline">Marcar pagado</span>
-                        </button>
-                      </form>
-                      <Link
-                        href={`/cobros/${p.id}/editar`}
-                        aria-label="Editar pago"
-                        className="flex items-center justify-center rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Link>
-                      <form action={deletePayment.bind(null, p.id)}>
-                        <ConfirmSubmitButton
-                          confirmMessage={`¿Eliminar el cobro de ${formatCurrency(p.amount)} de ${p.member.name}?`}
-                          className="flex items-center justify-center rounded-lg border border-destructive/40 px-2.5 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </ConfirmSubmitButton>
-                      </form>
+                      {p.status === "PAID" ? (
+                        <form action={undoMarkPaid.bind(null, p.id)}>
+                          <button
+                            type="submit"
+                            aria-label="Deshacer pago"
+                            className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] sm:px-3"
+                          >
+                            <Undo2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-12" />
+                            <span className="hidden sm:inline">Deshacer</span>
+                          </button>
+                        </form>
+                      ) : (
+                        <>
+                          <form action={sendPaymentReminder.bind(null, p.id)}>
+                            <WhatsAppButton
+                              phone={p.member.phone}
+                              message={paymentReminderMessage(p.member.name, p.amount, p.dueDate)}
+                              className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] sm:px-3"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
+                              <span className="hidden sm:inline">WhatsApp</span>
+                            </WhatsAppButton>
+                          </form>
+                          <form action={markPaid.bind(null, p.id)}>
+                            <button
+                              type="submit"
+                              aria-label="Marcar como pagado"
+                              className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                              <span className="hidden sm:inline">Marcar pagado</span>
+                            </button>
+                          </form>
+                          <Link
+                            href={`/cobros/${p.id}/editar`}
+                            aria-label="Editar pago"
+                            className="flex items-center justify-center rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-background"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Link>
+                          <form action={deletePayment.bind(null, p.id)}>
+                            <ConfirmSubmitButton
+                              confirmMessage={`¿Eliminar el cobro de ${formatCurrency(p.amount)} de ${p.member.name}?`}
+                              className="flex items-center justify-center rounded-lg border border-destructive/40 px-2.5 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </ConfirmSubmitButton>
+                          </form>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -104,7 +118,7 @@ export default async function CobrosPage() {
               {payments.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
-                    No hay pagos pendientes. 🎉
+                    Todavía no hay cobros cargados.
                   </td>
                 </tr>
               )}
@@ -189,8 +203,8 @@ export default async function CobrosPage() {
       <div className="rounded-2xl border border-border bg-surface p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">Recordatorios enviados</h2>
-          <span className="rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning">
-            Simulado — no envía WhatsApp real todavía
+          <span className="rounded-full bg-success-bg px-2.5 py-1 text-xs font-semibold text-success">
+            Abre WhatsApp con el mensaje listo para enviar
           </span>
         </div>
         <div className="mt-4 flex flex-col divide-y divide-border">

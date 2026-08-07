@@ -30,6 +30,7 @@ model Plan {
   price        Int
   billingCycle BillingCycle @default(MONTHLY)
   active       Boolean      @default(true)
+  features     String?
   members      Member[]
 }
 
@@ -44,6 +45,7 @@ model Member {
   name     String
   email    String?
   phone    String
+  dni      String?      @unique
   joinedAt DateTime     @default(now())
   status   MemberStatus @default(ACTIVE)
   photoUrl String?
@@ -53,6 +55,7 @@ model Member {
   emergencyNotes String?
 
   riskDismissedUntil DateTime?
+  archivedAt          DateTime?
 
   planId String
   plan   Plan   @relation(fields: [planId], references: [id])
@@ -78,7 +81,7 @@ model Payment {
   createdAt DateTime      @default(now())
 
   memberId String
-  member   Member @relation(fields: [memberId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 enum PaymentStatus {
@@ -92,7 +95,7 @@ model CheckIn {
   timestamp DateTime @default(now())
 
   memberId String
-  member   Member @relation(fields: [memberId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 model GymClass {
@@ -116,7 +119,7 @@ model Booking {
   class   GymClass @relation(fields: [classId], references: [id])
 
   memberId String
-  member   Member @relation(fields: [memberId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@unique([classId, memberId])
 }
@@ -134,7 +137,7 @@ model MessageLog {
   sentAt  DateTime    @default(now())
 
   memberId String
-  member   Member @relation(fields: [memberId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 enum MessageType {
@@ -143,12 +146,13 @@ enum MessageType {
 }
 
 model GymSettings {
-  id      String  @id @default("main")
-  name    String  @default("PULSO Gym")
-  address String?
-  phone   String?
-  email   String?
-  logoUrl String?
+  id              String  @id @default("main")
+  name            String  @default("PULSO Gym")
+  address         String?
+  phone           String?
+  email           String?
+  logoUrl         String?
+  checkinEnabled  Boolean @default(false)
 }
 
 model Trainer {
