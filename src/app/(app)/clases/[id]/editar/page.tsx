@@ -4,12 +4,14 @@ import { ArrowLeft } from "lucide-react";
 import { DAYS } from "@/lib/format";
 import { db } from "@/lib/db";
 import { updateClass } from "../../actions";
+import { requireClassesEnabled } from "@/lib/authz";
 
 export default async function EditarClasePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireClassesEnabled();
   const { id } = await params;
   const cls = await db.gymClass.findUnique({ where: { id } });
   if (!cls) notFound();

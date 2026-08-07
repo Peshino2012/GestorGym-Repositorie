@@ -59,7 +59,7 @@ export default async function LoginPage({
               name="email"
               type="email"
               required
-              defaultValue="admin@pulsogym.com"
+              autoComplete="username"
               className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -73,7 +73,7 @@ export default async function LoginPage({
               name="password"
               type="password"
               required
-              defaultValue="pulso2024"
+              autoComplete="current-password"
               className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -84,10 +84,6 @@ export default async function LoginPage({
           >
             Ingresar
           </button>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Demo precargada — cambiá la contraseña antes de usar en producción.
-          </p>
         </form>
       </div>
     </main>

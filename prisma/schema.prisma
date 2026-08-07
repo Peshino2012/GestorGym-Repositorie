@@ -153,6 +153,7 @@ model GymSettings {
   email           String?
   logoUrl         String?
   checkinEnabled  Boolean @default(false)
+  classesEnabled  Boolean @default(false)
 }
 
 model Trainer {

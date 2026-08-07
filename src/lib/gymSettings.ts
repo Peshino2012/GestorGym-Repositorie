@@ -11,6 +11,7 @@ export async function getGymSettings() {
       email: null,
       logoUrl: null,
       checkinEnabled: false,
+      classesEnabled: false,
     }
   );
 }
