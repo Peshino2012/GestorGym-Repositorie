@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Plus, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { DAYS } from "@/lib/format";
+import { requireClassesEnabled } from "@/lib/authz";
 
 export default async function ClasesPage() {
+  await requireClassesEnabled();
+
   const classes = await db.gymClass.findMany({
     include: { bookings: { where: { status: { in: ["BOOKED", "WAITLIST"] } } } },
     orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],

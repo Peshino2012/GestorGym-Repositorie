@@ -6,12 +6,14 @@ import Sidebar from "./Sidebar";
 
 export default function AppShell({
   role,
+  classesEnabled,
   userName,
   gymLabel,
   logoutAction,
   children,
 }: {
   role?: "OWNER" | "STAFF";
+  classesEnabled?: boolean;
   userName?: string | null;
   gymLabel?: string;
   logoutAction: () => void;
@@ -29,7 +31,7 @@ export default function AppShell({
         />
       )}
 
-      <Sidebar role={role} open={open} onClose={() => setOpen(false)} />
+      <Sidebar role={role} classesEnabled={classesEnabled} open={open} onClose={() => setOpen(false)} />
 
       <div className="flex flex-1 flex-col overflow-hidden print:overflow-visible">
         <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-4 sm:px-8 print:hidden">

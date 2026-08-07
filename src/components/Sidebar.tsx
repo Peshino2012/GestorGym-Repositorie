@@ -18,29 +18,33 @@ import {
 } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, ownerOnly: false },
-  { href: "/socios", label: "Socios", icon: Users, ownerOnly: false },
-  { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false },
-  { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false },
-  { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false },
-  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true },
-  { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true },
-  { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true },
-  { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true },
-  { href: "/configuracion", label: "Configuración", icon: Settings, ownerOnly: true },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, ownerOnly: false, requiresClasses: false },
+  { href: "/socios", label: "Socios", icon: Users, ownerOnly: false, requiresClasses: false },
+  { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requiresClasses: false },
+  { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requiresClasses: false },
+  { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requiresClasses: true },
+  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requiresClasses: false },
+  { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requiresClasses: false },
+  { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requiresClasses: false },
+  { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true, requiresClasses: false },
+  { href: "/configuracion", label: "Configuración", icon: Settings, ownerOnly: true, requiresClasses: false },
 ];
 
 export default function Sidebar({
   role,
+  classesEnabled = false,
   open = false,
   onClose,
 }: {
   role?: "OWNER" | "STAFF";
+  classesEnabled?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const items = NAV.filter((item) => !item.ownerOnly || role === "OWNER");
+  const items = NAV.filter(
+    (item) => (!item.ownerOnly || role === "OWNER") && (!item.requiresClasses || classesEnabled)
+  );
 
   return (
     <aside

@@ -5,12 +5,14 @@ import { db } from "@/lib/db";
 import { DAYS } from "@/lib/format";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { bookMember, cancelBooking, deleteClass } from "../actions";
+import { requireClassesEnabled } from "@/lib/authz";
 
 export default async function ClaseDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireClassesEnabled();
   const { id } = await params;
 
   const cls = await db.gymClass.findUnique({

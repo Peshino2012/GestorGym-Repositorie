@@ -1,7 +1,10 @@
 import { DAYS } from "@/lib/format";
 import { createClass } from "../actions";
+import { requireClassesEnabled } from "@/lib/authz";
 
-export default function NuevaClasePage() {
+export default async function NuevaClasePage() {
+  await requireClassesEnabled();
+
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <div>
