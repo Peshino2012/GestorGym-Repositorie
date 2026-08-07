@@ -172,3 +172,23 @@ model GalleryPhoto {
   caption   String?
   createdAt DateTime @default(now())
 }
+
+model ScheduleBlock {
+  id         String @id @default(cuid())
+  title      String
+  hoursLabel String
+  icon       String @default("sun")
+  order      Int    @default(0)
+
+  entries ScheduleEntry[]
+}
+
+model ScheduleEntry {
+  id    String @id @default(cuid())
+  time  String
+  name  String
+  order Int    @default(0)
+
+  blockId String
+  block   ScheduleBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+}

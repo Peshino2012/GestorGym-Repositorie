@@ -8,11 +8,15 @@ import { getGymSettings } from "@/lib/gymSettings";
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
 
-  const [gym, plans, trainers, gallery] = await Promise.all([
+  const [gym, plans, trainers, gallery, scheduleBlocks] = await Promise.all([
     getGymSettings(),
     db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" } }),
     db.trainer.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } }),
     db.galleryPhoto.findMany({ orderBy: { createdAt: "asc" } }),
+    db.scheduleBlock.findMany({
+      orderBy: { order: "asc" },
+      include: { entries: { orderBy: { order: "asc" } } },
+    }),
   ]);
 
   // Blob storage returns absolute URLs already; local-disk uploads return
@@ -46,6 +50,14 @@ export async function GET(req: NextRequest) {
       id: g.id,
       url: toAbsolute(g.url),
       caption: g.caption,
+    })),
+    classesEnabled: gym.classesEnabled,
+    scheduleBlocks: scheduleBlocks.map((b) => ({
+      id: b.id,
+      title: b.title,
+      hoursLabel: b.hoursLabel,
+      icon: b.icon,
+      entries: b.entries.map((e) => ({ id: e.id, time: e.time, name: e.name })),
     })),
   });
 }
