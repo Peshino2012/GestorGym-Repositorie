@@ -12,6 +12,7 @@ export async function getGymSettings() {
       logoUrl: null,
       checkinEnabled: false,
       classesEnabled: false,
+      horariosEnabled: false,
     }
   );
 }

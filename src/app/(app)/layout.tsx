@@ -19,6 +19,7 @@ export default async function AppLayout({
     <AppShell
       role={session?.user?.role}
       classesEnabled={gym.classesEnabled}
+      horariosEnabled={gym.horariosEnabled}
       userName={session?.user?.name}
       gymLabel={gymLabel}
       logoutAction={logoutAction}

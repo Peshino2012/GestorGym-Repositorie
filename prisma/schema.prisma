@@ -154,6 +154,7 @@ model GymSettings {
   logoUrl         String?
   checkinEnabled  Boolean @default(false)
   classesEnabled  Boolean @default(false)
+  horariosEnabled Boolean @default(false)
 }
 
 model Trainer {
