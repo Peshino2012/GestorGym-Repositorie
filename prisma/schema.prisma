@@ -104,13 +104,16 @@ model CheckIn {
 }
 
 model GymClass {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   instructor  String
   dayOfWeek   Int
   startTime   String
   durationMin Int
   capacity    Int
+  description String?
+  icon        String  @default("dumbbell")
+  showOnSite  Boolean @default(false)
 
   bookings Booking[]
 }
@@ -198,13 +201,4 @@ model ScheduleEntry {
 
   blockId String
   block   ScheduleBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
-}
-
-model ClassCard {
-  id          String  @id @default(cuid())
-  title       String
-  description String
-  icon        String  @default("dumbbell")
-  active      Boolean @default(true)
-  order       Int     @default(0)
 }
