@@ -3,10 +3,24 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/authz";
 
-export async function createStaffUser(formData: FormData) {
+export type UserFormState = { error?: string };
+
+function isUniqueEmailError(err: unknown) {
+  return (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002" &&
+    (err.meta?.target as string[] | undefined)?.includes("email")
+  );
+}
+
+export async function createStaffUser(
+  _prevState: UserFormState,
+  formData: FormData
+): Promise<UserFormState> {
   await requireOwner();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -15,30 +29,41 @@ export async function createStaffUser(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   if (!name || !email) {
-    throw new Error("Nombre y email son obligatorios");
+    return { error: "Nombre y email son obligatorios" };
   }
   if (password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres");
+    return { error: "La contraseña debe tener al menos 6 caracteres" };
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await db.user.create({
-    data: {
-      name,
-      email,
-      phone: phone || null,
-      passwordHash,
-      role: "STAFF",
-      mustChangePassword: true,
-    },
-  });
+  try {
+    await db.user.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        passwordHash,
+        role: "STAFF",
+        mustChangePassword: true,
+      },
+    });
+  } catch (err) {
+    if (isUniqueEmailError(err)) {
+      return { error: "Ya existe un usuario con ese email." };
+    }
+    throw err;
+  }
 
   revalidatePath("/usuarios");
   redirect(`/usuarios?created=${encodeURIComponent(email)}`);
 }
 
-export async function updateUser(id: string, formData: FormData) {
+export async function updateUser(
+  id: string,
+  _prevState: UserFormState,
+  formData: FormData
+): Promise<UserFormState> {
   const session = await requireOwner();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -47,10 +72,10 @@ export async function updateUser(id: string, formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   if (!name || !email) {
-    throw new Error("Nombre y email son obligatorios");
+    return { error: "Nombre y email son obligatorios" };
   }
   if (password && password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres");
+    return { error: "La contraseña debe tener al menos 6 caracteres" };
   }
 
   // Role can't be changed on your own account — a disabled <select> doesn't
@@ -65,10 +90,17 @@ export async function updateUser(id: string, formData: FormData) {
     ? { passwordHash: await bcrypt.hash(password, 10), mustChangePassword: true }
     : {};
 
-  await db.user.update({
-    where: { id },
-    data: { name, email, phone: phone || null, role, ...passwordUpdate },
-  });
+  try {
+    await db.user.update({
+      where: { id },
+      data: { name, email, phone: phone || null, role, ...passwordUpdate },
+    });
+  } catch (err) {
+    if (isUniqueEmailError(err)) {
+      return { error: "Ya existe otro usuario con ese email." };
+    }
+    throw err;
+  }
 
   revalidatePath("/usuarios");
   redirect("/usuarios");
