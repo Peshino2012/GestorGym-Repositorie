@@ -10,6 +10,9 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrations run through a direct (non-pooled) connection when available —
+    // pooled connections can leave advisory locks stuck mid-deploy (P1002).
+    // Falls back to DATABASE_URL until DIRECT_URL is set in Vercel.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
