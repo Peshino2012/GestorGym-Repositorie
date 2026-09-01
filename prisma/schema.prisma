@@ -30,8 +30,10 @@ model Plan {
   price        Int
   billingCycle BillingCycle @default(MONTHLY)
   active       Boolean      @default(true)
+  featured     Boolean      @default(false)
   features     String?
   members      Member[]
+  payments     Payment[]
 }
 
 enum BillingCycle {
@@ -82,6 +84,9 @@ model Payment {
 
   memberId String
   member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
 }
 
 enum PaymentStatus {
@@ -155,6 +160,7 @@ model GymSettings {
   checkinEnabled  Boolean @default(false)
   classesEnabled  Boolean @default(false)
   horariosEnabled Boolean @default(false)
+  planesEnabled   Boolean @default(true)
 }
 
 model Trainer {
@@ -192,4 +198,13 @@ model ScheduleEntry {
 
   blockId String
   block   ScheduleBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+}
+
+model ClassCard {
+  id          String  @id @default(cuid())
+  title       String
+  description String
+  icon        String  @default("dumbbell")
+  active      Boolean @default(true)
+  order       Int     @default(0)
 }
