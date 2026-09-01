@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { DAYS } from "@/lib/format";
 import { requireClassesEnabled } from "@/lib/authz";
 
+const MAX_SHOWN_ON_SITE = 6;
+
 export default async function ClasesPage() {
   await requireClassesEnabled();
 
@@ -12,12 +14,17 @@ export default async function ClasesPage() {
     orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
   });
 
+  let shownCount = 0;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Clases</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{classes.length} clases programadas</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {classes.length} clases programadas. Las marcadas &quot;Mostrar en la web&quot; aparecen en
+            &quot;Nuestras clases&quot; de tu sitio público (máximo {MAX_SHOWN_ON_SITE}, por día/horario).
+          </p>
         </div>
         <Link
           href="/clases/nueva"
@@ -33,15 +40,30 @@ export default async function ClasesPage() {
           const waitlist = c.bookings.filter((b) => b.status === "WAITLIST").length;
           const full = booked >= c.capacity;
 
+          const willShow = c.showOnSite && shownCount < MAX_SHOWN_ON_SITE;
+          if (willShow) shownCount++;
+          const position = willShow ? shownCount : null;
+
           return (
             <Link
               key={c.id}
               href={`/clases/${c.id}`}
               className="flex flex-col rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-primary"
             >
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {DAYS[c.dayOfWeek]} · {c.startTime}
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {DAYS[c.dayOfWeek]} · {c.startTime}
+                </p>
+                {c.showOnSite && (
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      position ? "bg-success-bg text-success" : "bg-background text-muted-foreground"
+                    }`}
+                  >
+                    {position ? `Web #${position}` : "No entra (top 6)"}
+                  </span>
+                )}
+              </div>
               <h2 className="mt-1 text-lg font-bold">{c.name}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{c.instructor} · {c.durationMin} min</p>
 

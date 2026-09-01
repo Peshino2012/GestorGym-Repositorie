@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { TriangleAlert } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 
 type Member = { id: string; name: string };
@@ -9,13 +10,16 @@ type Plan = { id: string; name: string; price: number };
 export default function NewPaymentForm({
   members,
   plans,
+  membersWithActivePayment,
   action,
 }: {
   members: Member[];
   plans: Plan[];
+  membersWithActivePayment: string[];
   action: (formData: FormData) => void;
 }) {
   const amountRef = useRef<HTMLInputElement>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
 
   function handlePlanChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const plan = plans.find((p) => p.id === e.target.value);
@@ -23,6 +27,9 @@ export default function NewPaymentForm({
       amountRef.current.value = String(plan.price);
     }
   }
+
+  const selectedMember = members.find((m) => m.id === selectedMemberId);
+  const hasActivePayment = membersWithActivePayment.includes(selectedMemberId);
 
   return (
     <form action={action} className="mt-4 flex flex-col gap-3">
@@ -35,6 +42,7 @@ export default function NewPaymentForm({
           name="memberId"
           required
           defaultValue=""
+          onChange={(e) => setSelectedMemberId(e.target.value)}
           className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
         >
           <option value="" disabled>
@@ -43,9 +51,16 @@ export default function NewPaymentForm({
           {members.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
+              {membersWithActivePayment.includes(m.id) ? " (ya tiene un cobro pendiente)" : ""}
             </option>
           ))}
         </select>
+        {hasActivePayment && selectedMember && (
+          <p className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-warning-bg px-3 py-2 text-xs font-medium text-warning">
+            <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {selectedMember.name} ya tiene un cobro pendiente o vencido registrado.
+          </p>
+        )}
       </div>
       <div>
         <label htmlFor="planId" className="mb-1.5 block text-xs font-semibold text-muted-foreground">

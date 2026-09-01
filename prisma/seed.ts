@@ -36,7 +36,6 @@ async function main() {
   await db.gymSettings.deleteMany();
   await db.trainer.deleteMany();
   await db.galleryPhoto.deleteMany();
-  await db.classCard.deleteMany();
 
   console.log("Creando usuario demo...");
   const passwordHash = await bcrypt.hash("pulso2024", 10);
@@ -81,65 +80,63 @@ async function main() {
   ]);
   const plans = [basico, full, anual];
 
-  console.log("Creando tarjetas de clases (vitrina del sitio público)...");
-  await Promise.all([
-    db.classCard.create({
-      data: {
-        title: "Musculación",
-        description: "Sala equipada con máquinas y peso libre. Rutinas guiadas para cada objetivo.",
-        icon: "dumbbell",
-        order: 1,
-      },
-    }),
-    db.classCard.create({
-      data: {
-        title: "Funcional",
-        description: "Movimientos multiarticulares de alta intensidad. Fuerza, resistencia y quema real.",
-        icon: "flame",
-        order: 2,
-      },
-    }),
-    db.classCard.create({
-      data: {
-        title: "Boxeo",
-        description: "Técnica, sacos y combos al ritmo de la música. Descargá tensión, ganá potencia.",
-        icon: "swords",
-        order: 3,
-      },
-    }),
-    db.classCard.create({
-      data: {
-        title: "Spinning",
-        description: "Cardio en bici a full ritmo, con instructor en vivo y playlist que te empuja.",
-        icon: "bike",
-        order: 4,
-      },
-    }),
-    db.classCard.create({
-      data: {
-        title: "Yoga",
-        description: "Movilidad, respiración y recuperación activa. El equilibrio que el cuerpo pide.",
-        icon: "wind",
-        order: 5,
-      },
-    }),
-    db.classCard.create({
-      data: {
-        title: "Crossfit",
-        description: "WODs cronometrados, comunidad que te empuja y récords que se rompen cada semana.",
-        icon: "timer",
-        order: 6,
-      },
-    }),
-  ]);
-
   console.log("Creando clases...");
   const classDefs = [
-    { name: "Funcional", instructor: "Vale Suárez", dayOfWeek: 1, startTime: "18:00", durationMin: 50, capacity: 12 },
-    { name: "Spinning", instructor: "Cami Rojas", dayOfWeek: 2, startTime: "19:00", durationMin: 45, capacity: 15 },
-    { name: "Boxeo", instructor: "Tomi Aguirre", dayOfWeek: 1, startTime: "20:00", durationMin: 60, capacity: 10 },
-    { name: "Yoga", instructor: "Cami Rojas", dayOfWeek: 2, startTime: "08:00", durationMin: 60, capacity: 12 },
-    { name: "Crossfit", instructor: "Nico Ferreyra", dayOfWeek: 6, startTime: "10:00", durationMin: 50, capacity: 10 },
+    {
+      name: "Funcional",
+      instructor: "Vale Suárez",
+      dayOfWeek: 1,
+      startTime: "18:00",
+      durationMin: 50,
+      capacity: 12,
+      description: "Movimientos multiarticulares de alta intensidad. Fuerza, resistencia y quema real.",
+      icon: "flame",
+      showOnSite: true,
+    },
+    {
+      name: "Spinning",
+      instructor: "Cami Rojas",
+      dayOfWeek: 2,
+      startTime: "19:00",
+      durationMin: 45,
+      capacity: 15,
+      description: "Cardio en bici a full ritmo, con instructor en vivo y playlist que te empuja.",
+      icon: "bike",
+      showOnSite: true,
+    },
+    {
+      name: "Boxeo",
+      instructor: "Tomi Aguirre",
+      dayOfWeek: 1,
+      startTime: "20:00",
+      durationMin: 60,
+      capacity: 10,
+      description: "Técnica, sacos y combos al ritmo de la música. Descargá tensión, ganá potencia.",
+      icon: "swords",
+      showOnSite: true,
+    },
+    {
+      name: "Yoga",
+      instructor: "Cami Rojas",
+      dayOfWeek: 2,
+      startTime: "08:00",
+      durationMin: 60,
+      capacity: 12,
+      description: "Movilidad, respiración y recuperación activa. El equilibrio que el cuerpo pide.",
+      icon: "wind",
+      showOnSite: true,
+    },
+    {
+      name: "Crossfit",
+      instructor: "Nico Ferreyra",
+      dayOfWeek: 6,
+      startTime: "10:00",
+      durationMin: 50,
+      capacity: 10,
+      description: "WODs cronometrados, comunidad que te empuja y récords que se rompen cada semana.",
+      icon: "timer",
+      showOnSite: true,
+    },
   ];
   const classes = await Promise.all(
     classDefs.map((c) => db.gymClass.create({ data: c }))
