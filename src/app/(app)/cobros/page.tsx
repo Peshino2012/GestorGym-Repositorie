@@ -11,9 +11,25 @@ import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
 import NewPaymentForm from "./NewPaymentForm";
 import { markPaid, sendPaymentReminder, createPayment, deletePayment, undoMarkPaid } from "./actions";
 
-export default async function CobrosPage() {
-  const [payments, recentMessages, statusBreakdown, members, plans] = await Promise.all([
+const STATUS_OPTIONS: { value: "PENDING" | "PAID" | "OVERDUE"; label: string }[] = [
+  { value: "PENDING", label: "Pendiente" },
+  { value: "PAID", label: "Pagado" },
+  { value: "OVERDUE", label: "Vencido" },
+];
+
+export default async function CobrosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ memberId?: string; status?: string }>;
+}) {
+  const { memberId, status } = await searchParams;
+
+  const [payments, recentMessages, statusBreakdown, members, plans, activePayments] = await Promise.all([
     db.payment.findMany({
+      where: {
+        ...(memberId ? { memberId } : {}),
+        ...(status ? { status: status as "PENDING" | "PAID" | "OVERDUE" } : {}),
+      },
       include: { member: true },
       orderBy: { dueDate: "desc" },
     }),
@@ -26,7 +42,13 @@ export default async function CobrosPage() {
     getPaymentStatusBreakdown(),
     db.member.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" }, select: { id: true, name: true, price: true } }),
+    db.payment.findMany({
+      where: { status: { in: ["PENDING", "OVERDUE"] } },
+      select: { memberId: true },
+    }),
   ]);
+
+  const membersWithActivePayment = [...new Set(activePayments.map((p) => p.memberId))];
 
   return (
     <div className="flex flex-col gap-8">
@@ -37,6 +59,58 @@ export default async function CobrosPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface lg:col-span-2">
+        <form className="flex flex-wrap items-end gap-3 border-b border-border p-4">
+          <div>
+            <label htmlFor="memberId" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              Socio
+            </label>
+            <select
+              id="memberId"
+              name="memberId"
+              defaultValue={memberId ?? ""}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="">Todos los socios</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="status" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              Estado
+            </label>
+            <select
+              id="status"
+              name="status"
+              defaultValue={status ?? ""}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="">Todos los estados</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-background"
+          >
+            Filtrar
+          </button>
+          {(memberId || status) && (
+            <Link
+              href="/cobros"
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Limpiar filtros
+            </Link>
+          )}
+        </form>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-background text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -135,7 +209,12 @@ export default async function CobrosPage() {
           <p className="mt-1 text-xs text-muted-foreground">
             Cargo manual, fuera del ciclo automático — elegí el plan para autocompletar el monto.
           </p>
-          <NewPaymentForm members={members} plans={plans} action={createPayment} />
+          <NewPaymentForm
+            members={members}
+            plans={plans}
+            membersWithActivePayment={membersWithActivePayment}
+            action={createPayment}
+          />
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-6">

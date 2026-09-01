@@ -1,6 +1,7 @@
 import { DAYS } from "@/lib/format";
 import { createClass } from "../actions";
 import { requireClassesEnabled } from "@/lib/authz";
+import { CLASS_ICONS, CLASS_ICON_LABEL } from "@/lib/classIcons";
 
 export default async function NuevaClasePage() {
   await requireClassesEnabled();
@@ -99,6 +100,50 @@ export default async function NuevaClasePage() {
               className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-border pt-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Vitrina pública
+          </p>
+          <div>
+            <label htmlFor="description" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              Descripción (opcional)
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              placeholder="Se muestra en la tarjeta de esta clase en tu sitio público"
+              className="w-full resize-none rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div>
+            <label htmlFor="icon" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              Ícono
+            </label>
+            <select
+              id="icon"
+              name="icon"
+              defaultValue="dumbbell"
+              className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              {CLASS_ICONS.map((icon) => (
+                <option key={icon} value={icon}>
+                  {CLASS_ICON_LABEL[icon]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+            <span>
+              <span className="block text-sm font-medium">Mostrar en la web</span>
+              <span className="block text-xs text-muted-foreground">
+                Aparece como tarjeta en la sección &quot;Nuestras clases&quot; de tu sitio público (máximo 6).
+              </span>
+            </span>
+            <input type="checkbox" name="showOnSite" className="h-5 w-9 shrink-0 accent-primary" />
+          </label>
         </div>
 
         <button

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 export async function createClass(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -11,16 +12,30 @@ export async function createClass(formData: FormData) {
   const startTime = String(formData.get("startTime") ?? "");
   const durationMin = Number(formData.get("durationMin"));
   const capacity = Number(formData.get("capacity"));
+  const description = String(formData.get("description") ?? "").trim();
+  const icon = String(formData.get("icon") ?? "dumbbell");
+  const showOnSite = formData.get("showOnSite") === "on";
 
   if (!name || !instructor || !startTime || !capacity) {
     throw new Error("Completá todos los campos");
   }
 
   await db.gymClass.create({
-    data: { name, instructor, dayOfWeek, startTime, durationMin, capacity },
+    data: {
+      name,
+      instructor,
+      dayOfWeek,
+      startTime,
+      durationMin,
+      capacity,
+      description: description || null,
+      icon,
+      showOnSite,
+    },
   });
 
   revalidatePath("/clases");
+  await notifyPublicSite();
   redirect("/clases");
 }
 
@@ -31,6 +46,9 @@ export async function updateClass(id: string, formData: FormData) {
   const startTime = String(formData.get("startTime") ?? "");
   const durationMin = Number(formData.get("durationMin"));
   const capacity = Number(formData.get("capacity"));
+  const description = String(formData.get("description") ?? "").trim();
+  const icon = String(formData.get("icon") ?? "dumbbell");
+  const showOnSite = formData.get("showOnSite") === "on";
 
   if (!name || !instructor || !startTime || !capacity) {
     throw new Error("Completá todos los campos");
@@ -38,11 +56,22 @@ export async function updateClass(id: string, formData: FormData) {
 
   await db.gymClass.update({
     where: { id },
-    data: { name, instructor, dayOfWeek, startTime, durationMin, capacity },
+    data: {
+      name,
+      instructor,
+      dayOfWeek,
+      startTime,
+      durationMin,
+      capacity,
+      description: description || null,
+      icon,
+      showOnSite,
+    },
   });
 
   revalidatePath(`/clases/${id}`);
   revalidatePath("/clases");
+  await notifyPublicSite();
   redirect(`/clases/${id}`);
 }
 
@@ -57,6 +86,7 @@ export async function deleteClass(id: string) {
   await db.gymClass.delete({ where: { id } });
 
   revalidatePath("/clases");
+  await notifyPublicSite();
   redirect("/clases");
 }
 

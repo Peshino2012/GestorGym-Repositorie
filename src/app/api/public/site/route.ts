@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
       orderBy: { order: "asc" },
       include: { entries: { orderBy: { order: "asc" } } },
     }),
-    db.classCard.findMany({ where: { active: true }, orderBy: { order: "asc" }, take: 6 }),
+    db.gymClass.findMany({
+      where: { showOnSite: true },
+      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      take: 6,
+    }),
   ]);
 
   // Blob storage returns absolute URLs already; local-disk uploads return
@@ -65,8 +69,8 @@ export async function GET(req: NextRequest) {
     })),
     classCards: classCards.map((c) => ({
       id: c.id,
-      title: c.title,
-      description: c.description,
+      title: c.name,
+      description: c.description ?? "",
       icon: c.icon,
     })),
   });
