@@ -87,6 +87,12 @@ model Payment {
 
   planId String?
   plan   Plan?   @relation(fields: [planId], references: [id])
+
+  // When this payment is marked paid, the next cycle's payment is created
+  // automatically and linked back here — lets undoMarkPaid clean it up.
+  renewedFromId String?  @unique
+  renewedFrom   Payment? @relation("PaymentRenewal", fields: [renewedFromId], references: [id])
+  renewedTo     Payment? @relation("PaymentRenewal")
 }
 
 enum PaymentStatus {
