@@ -52,6 +52,13 @@ export async function createPayment(formData: FormData) {
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("El monto no es válido");
   if (!dueDate) throw new Error("La fecha de vencimiento es obligatoria");
 
+  const existingActive = await db.payment.findFirst({
+    where: { memberId, status: { in: ["PENDING", "OVERDUE"] } },
+  });
+  if (existingActive) {
+    throw new Error("Ese socio ya tiene un cobro pendiente o vencido registrado.");
+  }
+
   await db.payment.create({
     data: {
       memberId,

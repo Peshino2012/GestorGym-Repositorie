@@ -4,7 +4,8 @@ import { X, Pencil, Trash2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { DAYS } from "@/lib/format";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
-import { bookMember, cancelBooking, deleteClass } from "../actions";
+import MemberCombobox from "@/components/MemberCombobox";
+import { bookMember, cancelBooking, cancelAllBookings, deleteClass } from "../actions";
 import { requireClassesEnabled } from "@/lib/authz";
 
 export default async function ClaseDetailPage({
@@ -64,14 +65,24 @@ export default async function ClaseDetailPage({
               </ConfirmSubmitButton>
             </form>
           ) : (
-            <button
-              type="button"
-              disabled
-              title={`No se puede eliminar: hay ${cls.bookings.length} socio(s) anotados. Sacalos de la lista primero.`}
-              className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground opacity-50"
-            >
-              <Trash2 className="h-4 w-4" /> Eliminar
-            </button>
+            <>
+              <form action={cancelAllBookings.bind(null, cls.id)}>
+                <ConfirmSubmitButton
+                  confirmMessage={`¿Cancelar las ${cls.bookings.length} reserva(s) de "${cls.name}" (confirmados y lista de espera)? Esto no elimina la clase, solo vacía la lista.`}
+                  className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+                >
+                  <X className="h-4 w-4" /> Vaciar lista
+                </ConfirmSubmitButton>
+              </form>
+              <button
+                type="button"
+                disabled
+                title={`No se puede eliminar: hay ${booked.length} confirmado(s) y ${waitlist.length} en lista de espera. Usá "Vaciar lista" o sacalos uno por uno.`}
+                className="flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground opacity-50"
+              >
+                <Trash2 className="h-4 w-4" /> Eliminar
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -82,18 +93,14 @@ export default async function ClaseDetailPage({
           action={bookMember.bind(null, cls.id)}
           className="mt-4 flex flex-col gap-3 sm:flex-row"
         >
-          <select
-            name="memberId"
-            required
-            className="flex-1 rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="">Elegir socio...</option>
-            {availableMembers.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1">
+            <MemberCombobox
+              name="memberId"
+              members={availableMembers}
+              required
+              placeholder="Buscar socio por nombre..."
+            />
+          </div>
           <button
             type="submit"
             className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
