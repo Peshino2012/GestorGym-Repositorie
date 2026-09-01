@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
-import { requireOwner } from "@/lib/authz";
+import { Pencil, Star } from "lucide-react";
+import { requireOwner, requirePlanesEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
-import { createPlan, togglePlanActive, deletePlan } from "./actions";
+import { createPlan, togglePlanActive, deletePlan, setFeaturedPlan } from "./actions";
 
 const CYCLE_LABEL: Record<string, string> = {
   MONTHLY: "Mensual",
@@ -14,6 +14,7 @@ const CYCLE_LABEL: Record<string, string> = {
 
 export default async function PlanesPage() {
   await requireOwner();
+  await requirePlanesEnabled();
 
   const plans = await db.plan.findMany({
     orderBy: { price: "asc" },
@@ -39,6 +40,7 @@ export default async function PlanesPage() {
                   <th className="px-5 py-3 font-semibold">Precio</th>
                   <th className="hidden px-5 py-3 font-semibold sm:table-cell">Ciclo</th>
                   <th className="px-5 py-3 font-semibold">Estado</th>
+                  <th className="px-5 py-3 font-semibold">Destacado</th>
                   <th className="px-5 py-3 text-right font-semibold">Acción</th>
                 </tr>
               </thead>
@@ -64,6 +66,22 @@ export default async function PlanesPage() {
                       >
                         {p.active ? "Activo" : "Inactivo"}
                       </span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3">
+                      {p.featured ? (
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                          <Star className="h-3.5 w-3.5" fill="currentColor" /> Destacado
+                        </span>
+                      ) : (
+                        <form action={setFeaturedPlan.bind(null, p.id)}>
+                          <button
+                            type="submit"
+                            className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-background"
+                          >
+                            <Star className="h-3.5 w-3.5" /> Destacar
+                          </button>
+                        </form>
+                      )}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -107,7 +125,7 @@ export default async function PlanesPage() {
                 ))}
                 {plans.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-5 py-10 text-center text-muted-foreground">
                       Todavía no creaste ningún plan.
                     </td>
                   </tr>

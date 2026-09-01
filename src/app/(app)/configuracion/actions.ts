@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { saveUploadedFile } from "@/lib/upload";
 import { requireOwner } from "@/lib/authz";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 export async function updateGymSettings(formData: FormData) {
   await requireOwner();
@@ -16,6 +17,7 @@ export async function updateGymSettings(formData: FormData) {
   const checkinEnabled = formData.get("checkinEnabled") === "on";
   const classesEnabled = formData.get("classesEnabled") === "on";
   const horariosEnabled = formData.get("horariosEnabled") === "on";
+  const planesEnabled = formData.get("planesEnabled") === "on";
 
   let logoUrl: string | undefined;
   if (logo instanceof File && logo.size > 0) {
@@ -35,6 +37,7 @@ export async function updateGymSettings(formData: FormData) {
       checkinEnabled,
       classesEnabled,
       horariosEnabled,
+      planesEnabled,
     },
     update: {
       name,
@@ -44,9 +47,11 @@ export async function updateGymSettings(formData: FormData) {
       checkinEnabled,
       classesEnabled,
       horariosEnabled,
+      planesEnabled,
       ...(logoUrl ? { logoUrl } : {}),
     },
   });
 
   revalidatePath("/configuracion");
+  await notifyPublicSite();
 }

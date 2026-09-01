@@ -13,6 +13,7 @@ export async function getGymSettings() {
       checkinEnabled: false,
       classesEnabled: false,
       horariosEnabled: false,
+      planesEnabled: true,
     }
   );
 }

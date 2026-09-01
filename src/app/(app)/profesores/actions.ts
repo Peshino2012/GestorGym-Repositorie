@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { saveUploadedFile } from "@/lib/upload";
 import { requireOwner } from "@/lib/authz";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 export async function createTrainer(formData: FormData) {
   await requireOwner();
@@ -28,6 +29,7 @@ export async function createTrainer(formData: FormData) {
   }
 
   revalidatePath("/profesores");
+  await notifyPublicSite();
   redirect("/profesores");
 }
 
@@ -57,6 +59,7 @@ export async function updateTrainer(id: string, formData: FormData) {
   });
 
   revalidatePath("/profesores");
+  await notifyPublicSite();
   redirect("/profesores");
 }
 
@@ -64,10 +67,12 @@ export async function toggleTrainerActive(id: string, active: boolean) {
   await requireOwner();
   await db.trainer.update({ where: { id }, data: { active } });
   revalidatePath("/profesores");
+  await notifyPublicSite();
 }
 
 export async function deleteTrainer(id: string) {
   await requireOwner();
   await db.trainer.delete({ where: { id } });
   revalidatePath("/profesores");
+  await notifyPublicSite();
 }

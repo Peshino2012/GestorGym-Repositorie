@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { requireOwner } from "@/lib/authz";
+import { requireOwner, requirePlanesEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { updatePlan } from "../../actions";
 
@@ -11,6 +11,7 @@ export default async function EditarPlanPage({
   params: Promise<{ id: string }>;
 }) {
   await requireOwner();
+  await requirePlanesEnabled();
   const { id } = await params;
 
   const plan = await db.plan.findUnique({ where: { id } });

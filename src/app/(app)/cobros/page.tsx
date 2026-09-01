@@ -8,10 +8,11 @@ import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
+import NewPaymentForm from "./NewPaymentForm";
 import { markPaid, sendPaymentReminder, createPayment, deletePayment, undoMarkPaid } from "./actions";
 
 export default async function CobrosPage() {
-  const [payments, recentMessages, statusBreakdown, members] = await Promise.all([
+  const [payments, recentMessages, statusBreakdown, members, plans] = await Promise.all([
     db.payment.findMany({
       include: { member: true },
       orderBy: { dueDate: "desc" },
@@ -24,6 +25,7 @@ export default async function CobrosPage() {
     }),
     getPaymentStatusBreakdown(),
     db.member.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" }, select: { id: true, name: true, price: true } }),
   ]);
 
   return (
@@ -131,63 +133,9 @@ export default async function CobrosPage() {
         <div className="rounded-2xl border border-border bg-surface p-6">
           <h2 className="font-semibold">Nuevo cobro</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Para cargos manuales, fuera del ciclo automático de un plan.
+            Cargo manual, fuera del ciclo automático — elegí el plan para autocompletar el monto.
           </p>
-          <form action={createPayment} className="mt-4 flex flex-col gap-3">
-            <div>
-              <label htmlFor="memberId" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Socio
-              </label>
-              <select
-                id="memberId"
-                name="memberId"
-                required
-                defaultValue=""
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="" disabled>
-                  Elegí un socio
-                </option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="amount" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Monto
-              </label>
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min={0}
-                step={100}
-                required
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <div>
-              <label htmlFor="dueDate" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Vencimiento
-              </label>
-              <input
-                id="dueDate"
-                name="dueDate"
-                type="date"
-                required
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <button
-              type="submit"
-              className="mt-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
-            >
-              Crear cobro
-            </button>
-          </form>
+          <NewPaymentForm members={members} plans={plans} action={createPayment} />
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-6">

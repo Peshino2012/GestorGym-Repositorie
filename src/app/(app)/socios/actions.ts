@@ -56,6 +56,7 @@ export async function createMember(formData: FormData) {
   await db.payment.create({
     data: {
       memberId: member.id,
+      planId: plan.id,
       amount: plan.price,
       dueDate: addDays(new Date(), 30),
       status: "PENDING",
