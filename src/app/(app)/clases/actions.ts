@@ -83,6 +83,9 @@ export async function deleteClass(id: string) {
     throw new Error("No se puede eliminar: hay socios anotados en esta clase.");
   }
 
+  // Cancelled bookings are still rows referencing this class — clear them
+  // out first or the delete below fails on the foreign key.
+  await db.booking.deleteMany({ where: { classId: id } });
   await db.gymClass.delete({ where: { id } });
 
   revalidatePath("/clases");
