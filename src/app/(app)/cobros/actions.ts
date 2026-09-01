@@ -43,16 +43,19 @@ export async function sendPaymentReminder(paymentId: string) {
 
 export async function createPayment(formData: FormData) {
   const memberId = String(formData.get("memberId") ?? "");
+  const planId = String(formData.get("planId") ?? "");
   const amount = Number(formData.get("amount"));
   const dueDate = String(formData.get("dueDate") ?? "");
 
   if (!memberId) throw new Error("Elegí un socio");
+  if (!planId) throw new Error("Elegí un plan");
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("El monto no es válido");
   if (!dueDate) throw new Error("La fecha de vencimiento es obligatoria");
 
   await db.payment.create({
     data: {
       memberId,
+      planId,
       amount: Math.round(amount),
       dueDate: new Date(dueDate),
       status: "PENDING",

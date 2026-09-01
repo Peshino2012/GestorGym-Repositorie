@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/authz";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 function parseBlockForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -25,6 +26,7 @@ export async function createBlock(formData: FormData) {
 
   revalidatePath("/horarios");
   revalidatePath("/");
+  await notifyPublicSite();
 }
 
 export async function updateBlock(id: string, formData: FormData) {
@@ -35,6 +37,7 @@ export async function updateBlock(id: string, formData: FormData) {
 
   revalidatePath("/horarios");
   revalidatePath("/");
+  await notifyPublicSite();
   redirect("/horarios");
 }
 
@@ -43,6 +46,7 @@ export async function deleteBlock(id: string) {
   await db.scheduleBlock.delete({ where: { id } });
   revalidatePath("/horarios");
   revalidatePath("/");
+  await notifyPublicSite();
 }
 
 function parseEntryForm(formData: FormData) {
@@ -65,6 +69,7 @@ export async function createEntry(blockId: string, formData: FormData) {
   revalidatePath("/horarios");
   revalidatePath(`/horarios/${blockId}/editar`);
   revalidatePath("/");
+  await notifyPublicSite();
 }
 
 export async function updateEntry(id: string, blockId: string, formData: FormData) {
@@ -76,6 +81,7 @@ export async function updateEntry(id: string, blockId: string, formData: FormDat
   revalidatePath("/horarios");
   revalidatePath(`/horarios/${blockId}/editar`);
   revalidatePath("/");
+  await notifyPublicSite();
 }
 
 export async function deleteEntry(id: string, blockId: string) {
@@ -84,4 +90,5 @@ export async function deleteEntry(id: string, blockId: string) {
   revalidatePath("/horarios");
   revalidatePath(`/horarios/${blockId}/editar`);
   revalidatePath("/");
+  await notifyPublicSite();
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/authz";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 import type { BillingCycle } from "@/generated/prisma/client";
 
 function parsePlanForm(formData: FormData) {
@@ -25,6 +26,7 @@ export async function createPlan(formData: FormData) {
   await db.plan.create({ data });
 
   revalidatePath("/planes");
+  await notifyPublicSite();
   redirect("/planes");
 }
 
@@ -35,6 +37,7 @@ export async function updatePlan(id: string, formData: FormData) {
   await db.plan.update({ where: { id }, data });
 
   revalidatePath("/planes");
+  await notifyPublicSite();
   redirect("/planes");
 }
 
@@ -42,6 +45,17 @@ export async function togglePlanActive(id: string, active: boolean) {
   await requireOwner();
   await db.plan.update({ where: { id }, data: { active } });
   revalidatePath("/planes");
+  await notifyPublicSite();
+}
+
+export async function setFeaturedPlan(id: string) {
+  await requireOwner();
+  await db.$transaction([
+    db.plan.updateMany({ data: { featured: false }, where: { featured: true } }),
+    db.plan.update({ where: { id }, data: { featured: true } }),
+  ]);
+  revalidatePath("/planes");
+  await notifyPublicSite();
 }
 
 export async function deletePlan(id: string) {
@@ -56,4 +70,5 @@ export async function deletePlan(id: string) {
 
   await db.plan.delete({ where: { id } });
   revalidatePath("/planes");
+  await notifyPublicSite();
 }

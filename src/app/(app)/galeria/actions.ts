@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { saveUploadedFile } from "@/lib/upload";
 import { requireOwner } from "@/lib/authz";
+import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 export async function createGalleryPhoto(formData: FormData) {
   await requireOwner();
@@ -25,10 +26,12 @@ export async function createGalleryPhoto(formData: FormData) {
   });
 
   revalidatePath("/galeria");
+  await notifyPublicSite();
 }
 
 export async function deleteGalleryPhoto(id: string) {
   await requireOwner();
   await db.galleryPhoto.delete({ where: { id } });
   revalidatePath("/galeria");
+  await notifyPublicSite();
 }

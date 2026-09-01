@@ -8,7 +8,7 @@ import { getGymSettings } from "@/lib/gymSettings";
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
 
-  const [gym, plans, trainers, gallery, scheduleBlocks] = await Promise.all([
+  const [gym, plans, trainers, gallery, scheduleBlocks, classCards] = await Promise.all([
     getGymSettings(),
     db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" } }),
     db.trainer.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } }),
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       orderBy: { order: "asc" },
       include: { entries: { orderBy: { order: "asc" } } },
     }),
+    db.classCard.findMany({ where: { active: true }, orderBy: { order: "asc" }, take: 6 }),
   ]);
 
   // Blob storage returns absolute URLs already; local-disk uploads return
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
       name: p.name,
       price: p.price,
       billingCycle: p.billingCycle,
+      featured: p.featured,
       features: p.features
         ? p.features.split("\n").map((f) => f.trim()).filter(Boolean)
         : [],
@@ -53,12 +55,19 @@ export async function GET(req: NextRequest) {
     })),
     classesEnabled: gym.classesEnabled,
     horariosEnabled: gym.horariosEnabled,
+    planesEnabled: gym.planesEnabled,
     scheduleBlocks: scheduleBlocks.map((b) => ({
       id: b.id,
       title: b.title,
       hoursLabel: b.hoursLabel,
       icon: b.icon,
       entries: b.entries.map((e) => ({ id: e.id, time: e.time, name: e.name })),
+    })),
+    classCards: classCards.map((c) => ({
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      icon: c.icon,
     })),
   });
 }

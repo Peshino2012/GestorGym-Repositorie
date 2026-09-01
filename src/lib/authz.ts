@@ -23,3 +23,10 @@ export async function requireHorariosEnabled() {
     redirect("/dashboard");
   }
 }
+
+export async function requirePlanesEnabled() {
+  const gym = await getGymSettings();
+  if (!gym.planesEnabled) {
+    redirect("/dashboard");
+  }
+}

@@ -8,6 +8,7 @@ export default function AppShell({
   role,
   classesEnabled,
   horariosEnabled,
+  planesEnabled,
   userName,
   gymLabel,
   logoutAction,
@@ -16,6 +17,7 @@ export default function AppShell({
   role?: "OWNER" | "STAFF";
   classesEnabled?: boolean;
   horariosEnabled?: boolean;
+  planesEnabled?: boolean;
   userName?: string | null;
   gymLabel?: string;
   logoutAction: () => void;
@@ -37,6 +39,7 @@ export default function AppShell({
         role={role}
         classesEnabled={classesEnabled}
         horariosEnabled={horariosEnabled}
+        planesEnabled={planesEnabled}
         open={open}
         onClose={() => setOpen(false)}
       />

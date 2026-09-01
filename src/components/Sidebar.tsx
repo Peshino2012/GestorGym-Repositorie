@@ -16,6 +16,7 @@ import {
   Settings,
   Zap,
   X,
+  LayoutGrid,
 } from "lucide-react";
 
 const NAV = [
@@ -24,8 +25,9 @@ const NAV = [
   { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requires: null },
   { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requires: null },
   { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requires: "classes" as const },
+  { href: "/clases-web", label: "Nuestras Clases", icon: LayoutGrid, ownerOnly: true, requires: "classes" as const },
   { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: true, requires: "horarios" as const },
-  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requires: null },
+  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requires: "planes" as const },
   { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requires: null },
   { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requires: null },
   { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true, requires: null },
@@ -36,12 +38,14 @@ export default function Sidebar({
   role,
   classesEnabled = false,
   horariosEnabled = false,
+  planesEnabled = true,
   open = false,
   onClose,
 }: {
   role?: "OWNER" | "STAFF";
   classesEnabled?: boolean;
   horariosEnabled?: boolean;
+  planesEnabled?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -50,6 +54,7 @@ export default function Sidebar({
     if (item.ownerOnly && role !== "OWNER") return false;
     if (item.requires === "classes" && !classesEnabled) return false;
     if (item.requires === "horarios" && !horariosEnabled) return false;
+    if (item.requires === "planes" && !planesEnabled) return false;
     return true;
   });
 

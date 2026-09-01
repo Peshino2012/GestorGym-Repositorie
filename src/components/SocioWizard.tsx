@@ -6,7 +6,7 @@ import { formatCurrency } from "@/lib/format";
 
 type Plan = { id: string; name: string; price: number };
 
-const STEPS = ["Datos personales", "Contacto de emergencia", "Foto"];
+const STEPS = ["Datos personales", "Contacto de emergencia (opcional)", "Foto (opcional)"];
 
 export default function SocioWizard({
   plans,
