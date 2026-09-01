@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { addDays } from "date-fns";
 import { CheckCircle2, MessageCircle, Pencil, Trash2, Undo2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getPaymentStatusBreakdown } from "@/lib/stats";
 import { paymentReminderMessage } from "@/lib/messages";
+import { syncOverduePayments } from "@/lib/paymentSync";
 import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -12,18 +14,21 @@ import MemberCombobox from "@/components/MemberCombobox";
 import NewPaymentForm from "./NewPaymentForm";
 import { markPaid, sendPaymentReminder, createPayment, deletePayment, undoMarkPaid } from "./actions";
 
-const STATUS_OPTIONS: { value: "PENDING" | "PAID" | "OVERDUE"; label: string }[] = [
-  { value: "PENDING", label: "Pendiente" },
+const STATUS_OPTIONS: { value: "PAID" | "OVERDUE"; label: string }[] = [
   { value: "PAID", label: "Pagado" },
   { value: "OVERDUE", label: "Vencido" },
 ];
+
+const MARK_PAID_WINDOW_DAYS = 3;
 
 export default async function CobrosPage({
   searchParams,
 }: {
   searchParams: Promise<{ memberId?: string; status?: string }>;
 }) {
+  await syncOverduePayments();
   const { memberId, status } = await searchParams;
+  const markPaidCutoff = addDays(new Date(), MARK_PAID_WINDOW_DAYS);
 
   const [payments, recentMessages, statusBreakdown, members, plans, activePayments] = await Promise.all([
     db.payment.findMany({
@@ -128,7 +133,13 @@ export default async function CobrosPage({
                     {formatDate(p.dueDate)}
                   </td>
                   <td className="px-5 py-3">
-                    <StatusBadge status={p.status} />
+                    {p.status === "PENDING" ? (
+                      <span className="text-xs text-muted-foreground">
+                        Próximo pago: {formatDate(p.dueDate)}
+                      </span>
+                    ) : (
+                      <StatusBadge status={p.status} />
+                    )}
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-2">
@@ -155,16 +166,18 @@ export default async function CobrosPage({
                               <span className="hidden sm:inline">WhatsApp</span>
                             </WhatsAppButton>
                           </form>
-                          <form action={markPaid.bind(null, p.id)}>
-                            <button
-                              type="submit"
-                              aria-label="Marcar como pagado"
-                              className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                              <span className="hidden sm:inline">Marcar pagado</span>
-                            </button>
-                          </form>
+                          {(p.status === "OVERDUE" || p.dueDate <= markPaidCutoff) && (
+                            <form action={markPaid.bind(null, p.id)}>
+                              <button
+                                type="submit"
+                                aria-label="Marcar como pagado"
+                                className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                                <span className="hidden sm:inline">Marcar pagado</span>
+                              </button>
+                            </form>
+                          )}
                           <Link
                             href={`/cobros/${p.id}/editar`}
                             aria-label="Editar pago"
