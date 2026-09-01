@@ -36,6 +36,7 @@ async function main() {
   await db.gymSettings.deleteMany();
   await db.trainer.deleteMany();
   await db.galleryPhoto.deleteMany();
+  await db.classCard.deleteMany();
 
   console.log("Creando usuario demo...");
   const passwordHash = await bcrypt.hash("pulso2024", 10);
@@ -75,10 +76,62 @@ async function main() {
   console.log("Creando planes...");
   const [basico, full, anual] = await Promise.all([
     db.plan.create({ data: { name: "Básico", price: 12000, billingCycle: "MONTHLY" } }),
-    db.plan.create({ data: { name: "Full", price: 18000, billingCycle: "MONTHLY" } }),
+    db.plan.create({ data: { name: "Full", price: 18000, billingCycle: "MONTHLY", featured: true } }),
     db.plan.create({ data: { name: "Anual", price: 15000, billingCycle: "ANNUAL" } }),
   ]);
   const plans = [basico, full, anual];
+
+  console.log("Creando tarjetas de clases (vitrina del sitio público)...");
+  await Promise.all([
+    db.classCard.create({
+      data: {
+        title: "Musculación",
+        description: "Sala equipada con máquinas y peso libre. Rutinas guiadas para cada objetivo.",
+        icon: "dumbbell",
+        order: 1,
+      },
+    }),
+    db.classCard.create({
+      data: {
+        title: "Funcional",
+        description: "Movimientos multiarticulares de alta intensidad. Fuerza, resistencia y quema real.",
+        icon: "flame",
+        order: 2,
+      },
+    }),
+    db.classCard.create({
+      data: {
+        title: "Boxeo",
+        description: "Técnica, sacos y combos al ritmo de la música. Descargá tensión, ganá potencia.",
+        icon: "swords",
+        order: 3,
+      },
+    }),
+    db.classCard.create({
+      data: {
+        title: "Spinning",
+        description: "Cardio en bici a full ritmo, con instructor en vivo y playlist que te empuja.",
+        icon: "bike",
+        order: 4,
+      },
+    }),
+    db.classCard.create({
+      data: {
+        title: "Yoga",
+        description: "Movilidad, respiración y recuperación activa. El equilibrio que el cuerpo pide.",
+        icon: "wind",
+        order: 5,
+      },
+    }),
+    db.classCard.create({
+      data: {
+        title: "Crossfit",
+        description: "WODs cronometrados, comunidad que te empuja y récords que se rompen cada semana.",
+        icon: "timer",
+        order: 6,
+      },
+    }),
+  ]);
 
   console.log("Creando clases...");
   const classDefs = [
@@ -151,6 +204,7 @@ async function main() {
       await db.payment.create({
         data: {
           memberId: member.id,
+          planId: plan.id,
           amount: plan.price,
           dueDate,
           paidAt: overdue ? null : subDays(dueDate, -Math.floor(Math.random() * 3)),
@@ -163,6 +217,7 @@ async function main() {
       await db.payment.create({
         data: {
           memberId: member.id,
+          planId: plan.id,
           amount: plan.price,
           dueDate: addDays(now, Math.floor(Math.random() * 10) - 2),
           status: "PENDING",
