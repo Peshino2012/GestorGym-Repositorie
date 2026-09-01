@@ -5,11 +5,13 @@ import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { computeAtRiskMembers } from "@/lib/retention";
 import { getCheckInsLast14Days, getRevenueLast6Months } from "@/lib/stats";
+import { syncOverduePayments } from "@/lib/paymentSync";
 import StatCard from "@/components/StatCard";
 import CheckInsChart from "@/components/charts/CheckInsChart";
 import RevenueChart from "@/components/charts/RevenueChart";
 
 export default async function DashboardPage() {
+  await syncOverduePayments();
   const now = new Date();
   const monthStart = startOfMonth(now);
 

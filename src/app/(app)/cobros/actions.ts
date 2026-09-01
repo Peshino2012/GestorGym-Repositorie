@@ -3,17 +3,34 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { paymentReminderMessage } from "@/lib/messages";
+import { computeNextDueDate } from "@/lib/billing";
 
 export async function markPaid(paymentId: string) {
   const payment = await db.payment.update({
     where: { id: paymentId },
     data: { status: "PAID", paidAt: new Date() },
+    include: { plan: true },
   });
 
   await db.member.update({
     where: { id: payment.memberId },
     data: { status: "ACTIVE" },
   });
+
+  // Roll the subscription forward automatically — the owner shouldn't have
+  // to manually create next month's cobro for a socio that's already paying.
+  if (payment.plan) {
+    await db.payment.create({
+      data: {
+        memberId: payment.memberId,
+        planId: payment.plan.id,
+        amount: payment.amount,
+        dueDate: computeNextDueDate(payment.dueDate, payment.plan.billingCycle),
+        status: "PENDING",
+        renewedFromId: payment.id,
+      },
+    });
+  }
 
   revalidatePath("/cobros");
   revalidatePath("/dashboard");
@@ -107,6 +124,23 @@ export async function deletePayment(id: string) {
 }
 
 export async function undoMarkPaid(id: string) {
+  const existing = await db.payment.findUniqueOrThrow({
+    where: { id },
+    include: { renewedTo: true },
+  });
+
+  // markPaid auto-creates the next cycle's cobro — undo it too, or the
+  // socio ends up with two active cobros (exactly the confusion this whole
+  // flow is supposed to prevent).
+  if (existing.renewedTo) {
+    if (existing.renewedTo.status !== "PENDING") {
+      throw new Error(
+        "No se puede deshacer: ya hay actividad en el cobro del próximo período."
+      );
+    }
+    await db.payment.delete({ where: { id: existing.renewedTo.id } });
+  }
+
   const payment = await db.payment.update({
     where: { id },
     data: { status: "PENDING", paidAt: null },
