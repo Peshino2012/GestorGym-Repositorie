@@ -141,3 +141,14 @@ export async function cancelBooking(bookingId: string) {
   revalidatePath("/clases");
   revalidatePath("/dashboard");
 }
+
+export async function cancelAllBookings(classId: string) {
+  await db.booking.updateMany({
+    where: { classId, status: { in: ["BOOKED", "WAITLIST"] } },
+    data: { status: "CANCELLED" },
+  });
+
+  revalidatePath(`/clases/${classId}`);
+  revalidatePath("/clases");
+  revalidatePath("/dashboard");
+}

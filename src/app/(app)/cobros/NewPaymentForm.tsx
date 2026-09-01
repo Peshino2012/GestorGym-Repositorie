@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import MemberCombobox from "@/components/MemberCombobox";
 
 type Member = { id: string; name: string };
 type Plan = { id: string; name: string; price: number };
@@ -30,6 +31,7 @@ export default function NewPaymentForm({
 
   const selectedMember = members.find((m) => m.id === selectedMemberId);
   const hasActivePayment = membersWithActivePayment.includes(selectedMemberId);
+  const blocked = Boolean(selectedMemberId) && hasActivePayment;
 
   return (
     <form action={action} className="mt-4 flex flex-col gap-3">
@@ -37,28 +39,20 @@ export default function NewPaymentForm({
         <label htmlFor="memberId" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
           Socio
         </label>
-        <select
+        <MemberCombobox
           id="memberId"
           name="memberId"
+          members={members}
           required
-          defaultValue=""
-          onChange={(e) => setSelectedMemberId(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-        >
-          <option value="" disabled>
-            Elegí un socio
-          </option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-              {membersWithActivePayment.includes(m.id) ? " (ya tiene un cobro pendiente)" : ""}
-            </option>
-          ))}
-        </select>
-        {hasActivePayment && selectedMember && (
-          <p className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-warning-bg px-3 py-2 text-xs font-medium text-warning">
+          placeholder="Buscar socio por nombre..."
+          onSelect={setSelectedMemberId}
+          suffixFor={(id) => (membersWithActivePayment.includes(id) ? " (ya tiene un cobro pendiente)" : "")}
+        />
+        {blocked && selectedMember && (
+          <p className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-danger-bg px-3 py-2 text-xs font-medium text-danger">
             <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            {selectedMember.name} ya tiene un cobro pendiente o vencido registrado.
+            {selectedMember.name} ya tiene un cobro pendiente o vencido registrado. Resolvé ese primero
+            (marcalo pagado o editalo) antes de crear uno nuevo.
           </p>
         )}
       </div>
@@ -116,7 +110,8 @@ export default function NewPaymentForm({
       </div>
       <button
         type="submit"
-        className="mt-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+        disabled={blocked}
+        className="mt-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
       >
         Crear cobro
       </button>

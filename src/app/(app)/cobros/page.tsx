@@ -8,6 +8,7 @@ import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
+import MemberCombobox from "@/components/MemberCombobox";
 import NewPaymentForm from "./NewPaymentForm";
 import { markPaid, sendPaymentReminder, createPayment, deletePayment, undoMarkPaid } from "./actions";
 
@@ -60,23 +61,17 @@ export default async function CobrosPage({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface lg:col-span-2">
         <form className="flex flex-wrap items-end gap-3 border-b border-border p-4">
-          <div>
+          <div className="w-56">
             <label htmlFor="memberId" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Socio
             </label>
-            <select
+            <MemberCombobox
               id="memberId"
               name="memberId"
+              members={members}
               defaultValue={memberId ?? ""}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="">Todos los socios</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Todos los socios"
+            />
           </div>
           <div>
             <label htmlFor="status" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
