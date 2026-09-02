@@ -126,3 +126,16 @@ export async function deleteUser(id: string) {
   revalidatePath("/usuarios");
   redirect("/usuarios");
 }
+
+export async function updateUserModuleAccess(userId: string, formData: FormData) {
+  await requireOwner();
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      canAccessClasses: formData.get("canAccessClasses") === "on",
+      canAccessHorarios: formData.get("canAccessHorarios") === "on",
+      canAccessPlanes: formData.get("canAccessPlanes") === "on",
+    },
+  });
+  revalidatePath("/configuracion");
+}

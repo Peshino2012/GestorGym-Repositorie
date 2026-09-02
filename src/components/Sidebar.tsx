@@ -24,8 +24,8 @@ const NAV = [
   { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requires: null },
   { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requires: null },
   { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requires: "classes" as const },
-  { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: true, requires: "horarios" as const },
-  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: true, requires: "planes" as const },
+  { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: false, requires: "horarios" as const },
+  { href: "/planes", label: "Planes", icon: Tag, ownerOnly: false, requires: "planes" as const },
   { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requires: null },
   { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requires: null },
   { href: "/usuarios", label: "Usuarios", icon: UserCog, ownerOnly: true, requires: null },
@@ -37,6 +37,9 @@ export default function Sidebar({
   classesEnabled = false,
   horariosEnabled = false,
   planesEnabled = true,
+  canAccessClasses = true,
+  canAccessHorarios = true,
+  canAccessPlanes = true,
   open = false,
   onClose,
 }: {
@@ -44,15 +47,19 @@ export default function Sidebar({
   classesEnabled?: boolean;
   horariosEnabled?: boolean;
   planesEnabled?: boolean;
+  canAccessClasses?: boolean;
+  canAccessHorarios?: boolean;
+  canAccessPlanes?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
   const items = NAV.filter((item) => {
     if (item.ownerOnly && role !== "OWNER") return false;
-    if (item.requires === "classes" && !classesEnabled) return false;
-    if (item.requires === "horarios" && !horariosEnabled) return false;
-    if (item.requires === "planes" && !planesEnabled) return false;
+    if (role === "OWNER") return true;
+    if (item.requires === "classes" && !(classesEnabled && canAccessClasses)) return false;
+    if (item.requires === "horarios" && !(horariosEnabled && canAccessHorarios)) return false;
+    if (item.requires === "planes" && !(planesEnabled && canAccessPlanes)) return false;
     return true;
   });
 

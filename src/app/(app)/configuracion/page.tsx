@@ -1,11 +1,17 @@
 import Image from "next/image";
 import { requireOwner } from "@/lib/authz";
 import { getGymSettings } from "@/lib/gymSettings";
+import { db } from "@/lib/db";
 import { updateGymSettings } from "./actions";
+import { updateUserModuleAccess } from "../usuarios/actions";
 
 export default async function ConfiguracionPage() {
   await requireOwner();
   const gym = await getGymSettings();
+  const staffUsers = await db.user.findMany({
+    where: { role: "STAFF" },
+    orderBy: { name: "asc" },
+  });
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
@@ -168,6 +174,73 @@ export default async function ConfiguracionPage() {
           Guardar cambios
         </button>
       </form>
+
+      <div>
+        <h2 className="text-xl font-bold">Permisos por usuario</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Elegí a qué módulos puede acceder cada usuario Staff — el dueño siempre tiene acceso a todo.
+        </p>
+      </div>
+
+      {staffUsers.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-surface p-7">
+          <p className="text-sm text-muted-foreground">
+            Todavía no creaste ningún usuario Staff — se van a poder configurar acá apenas crees uno.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {staffUsers.map((user) => (
+            <form
+              key={user.id}
+              action={updateUserModuleAccess.bind(null, user.id)}
+              className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-7"
+            >
+              <div>
+                <p className="text-sm font-semibold">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </div>
+
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                <span className="text-sm font-medium">Clases</span>
+                <input
+                  type="checkbox"
+                  name="canAccessClasses"
+                  defaultChecked={user.canAccessClasses}
+                  className="h-5 w-9 shrink-0 accent-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                <span className="text-sm font-medium">Horarios</span>
+                <input
+                  type="checkbox"
+                  name="canAccessHorarios"
+                  defaultChecked={user.canAccessHorarios}
+                  className="h-5 w-9 shrink-0 accent-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                <span className="text-sm font-medium">Planes</span>
+                <input
+                  type="checkbox"
+                  name="canAccessPlanes"
+                  defaultChecked={user.canAccessPlanes}
+                  className="h-5 w-9 shrink-0 accent-primary"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="mt-2 self-start rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+              >
+                Guardar
+              </button>
+            </form>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
