@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { requireOwner, requireHorariosEnabled } from "@/lib/authz";
+import { requireHorariosEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { updateBlock, createEntry, updateEntry, deleteEntry } from "../../actions";
 import { SCHEDULE_ICONS, SCHEDULE_ICON_LABEL } from "@/lib/scheduleIcons";
@@ -11,7 +11,6 @@ export default async function EditarBloquePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireOwner();
   await requireHorariosEnabled();
   const { id } = await params;
 
