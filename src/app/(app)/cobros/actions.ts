@@ -6,10 +6,21 @@ import { paymentReminderMessage } from "@/lib/messages";
 import { computeNextDueDate } from "@/lib/billing";
 
 export async function markPaid(paymentId: string) {
+  // Idempotency guard: a double-click (or a slow request retried) would
+  // otherwise run this twice and generate two renewal cobros for the same
+  // socio — re-creating the exact duplicate-cobro problem this whole flow
+  // exists to prevent.
+  const existing = await db.payment.findUniqueOrThrow({
+    where: { id: paymentId },
+    include: { renewedTo: true, plan: true },
+  });
+  if (existing.status === "PAID" || existing.renewedTo) {
+    return;
+  }
+
   const payment = await db.payment.update({
     where: { id: paymentId },
     data: { status: "PAID", paidAt: new Date() },
-    include: { plan: true },
   });
 
   await db.member.update({
@@ -19,13 +30,13 @@ export async function markPaid(paymentId: string) {
 
   // Roll the subscription forward automatically — the owner shouldn't have
   // to manually create next month's cobro for a socio that's already paying.
-  if (payment.plan) {
+  if (existing.plan) {
     await db.payment.create({
       data: {
         memberId: payment.memberId,
-        planId: payment.plan.id,
+        planId: existing.plan.id,
         amount: payment.amount,
-        dueDate: computeNextDueDate(payment.dueDate, payment.plan.billingCycle),
+        dueDate: computeNextDueDate(payment.dueDate, existing.plan.billingCycle),
         status: "PENDING",
         renewedFromId: payment.id,
       },
