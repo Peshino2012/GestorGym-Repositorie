@@ -53,7 +53,11 @@ export default async function CobrosPage({
     }),
     getPaymentStatusBreakdown(),
     db.member.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, dni: true } }),
-    db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" }, select: { id: true, name: true, price: true } }),
+    db.plan.findMany({
+      where: { active: true },
+      orderBy: { price: "asc" },
+      select: { id: true, name: true, price: true, billingCycle: true },
+    }),
     db.payment.findMany({
       where: { status: { in: ["PENDING", "OVERDUE"] } },
       select: { memberId: true },
@@ -292,7 +296,7 @@ function CobrosTable({
           <tr>
             <th className="px-5 py-3 font-semibold">Socio</th>
             <th className="px-5 py-3 font-semibold">Monto</th>
-            <th className="hidden px-5 py-3 font-semibold md:table-cell">Vencimiento</th>
+            <th className="hidden px-5 py-3 font-semibold md:table-cell">Vencimiento / Pago</th>
             <th className="px-5 py-3 font-semibold">Estado</th>
             <th className="px-5 py-3 text-right font-semibold">Acciones</th>
           </tr>
@@ -305,7 +309,14 @@ function CobrosTable({
               </td>
               <td className="whitespace-nowrap px-5 py-3">{formatCurrency(p.amount)}</td>
               <td className="hidden whitespace-nowrap px-5 py-3 text-muted-foreground md:table-cell">
-                {formatDate(p.dueDate)}
+                {p.status === "PAID" && p.paidAt ? (
+                  <>
+                    Pagó el {formatDate(p.paidAt)}{" "}
+                    <span className="text-xs">(vencía {formatDate(p.dueDate)})</span>
+                  </>
+                ) : (
+                  formatDate(p.dueDate)
+                )}
               </td>
               <td className="px-5 py-3">
                 {p.status === "PENDING" ? (
