@@ -1,9 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { paymentReminderMessage } from "@/lib/messages";
 import { computeNextDueDate } from "@/lib/billing";
+
+// Belt-and-suspenders for the application-level checks below: the database
+// itself has a unique index rejecting a second PENDING/OVERDUE payment for
+// the same socio (see the payment_one_active_per_member migration), so this
+// can never silently create a duplicate — it either gets caught earlier by
+// the explicit check, or by this constraint, and either way ends up here as
+// a clean message instead of a raw Prisma error. Payment has no other
+// unique constraint a plain create() can hit, so any P2002 here is this one.
+function isDuplicateActivePaymentError(err: unknown) {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+}
 
 export async function markPaid(paymentId: string) {
   // Idempotency guard: a double-click (or a slow request retried) would
@@ -31,16 +43,23 @@ export async function markPaid(paymentId: string) {
   // Roll the subscription forward automatically — the owner shouldn't have
   // to manually create next month's cobro for a socio that's already paying.
   if (existing.plan) {
-    await db.payment.create({
-      data: {
-        memberId: payment.memberId,
-        planId: existing.plan.id,
-        amount: payment.amount,
-        dueDate: computeNextDueDate(payment.dueDate, existing.plan.billingCycle),
-        status: "PENDING",
-        renewedFromId: payment.id,
-      },
-    });
+    try {
+      await db.payment.create({
+        data: {
+          memberId: payment.memberId,
+          planId: existing.plan.id,
+          amount: payment.amount,
+          dueDate: computeNextDueDate(payment.dueDate, existing.plan.billingCycle),
+          status: "PENDING",
+          renewedFromId: payment.id,
+        },
+      });
+    } catch (err) {
+      // Shouldn't be reachable (the idempotency guard above already stops a
+      // second renewal), but the DB constraint is the real backstop — if it
+      // ever fires, the payment stays correctly marked PAID either way.
+      if (!isDuplicateActivePaymentError(err)) throw err;
+    }
   }
 
   revalidatePath("/cobros");
@@ -87,15 +106,22 @@ export async function createPayment(formData: FormData) {
     throw new Error("Ese socio ya tiene un cobro pendiente o vencido registrado.");
   }
 
-  await db.payment.create({
-    data: {
-      memberId,
-      planId,
-      amount: Math.round(amount),
-      dueDate: new Date(dueDate),
-      status: "PENDING",
-    },
-  });
+  try {
+    await db.payment.create({
+      data: {
+        memberId,
+        planId,
+        amount: Math.round(amount),
+        dueDate: new Date(dueDate),
+        status: "PENDING",
+      },
+    });
+  } catch (err) {
+    if (isDuplicateActivePaymentError(err)) {
+      throw new Error("Ese socio ya tiene un cobro pendiente o vencido registrado.");
+    }
+    throw err;
+  }
 
   revalidatePath("/cobros");
   revalidatePath(`/socios/${memberId}`);
