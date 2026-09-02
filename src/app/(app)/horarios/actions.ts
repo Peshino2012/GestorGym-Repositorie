@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireOwner } from "@/lib/authz";
+import { requireHorariosEnabled } from "@/lib/authz";
 import { notifyPublicSite } from "@/lib/notifyPublicSite";
 
 function parseBlockForm(formData: FormData) {
@@ -19,7 +19,7 @@ function parseBlockForm(formData: FormData) {
 }
 
 export async function createBlock(formData: FormData) {
-  await requireOwner();
+  await requireHorariosEnabled();
   const data = parseBlockForm(formData);
 
   await db.scheduleBlock.create({ data });
@@ -30,7 +30,7 @@ export async function createBlock(formData: FormData) {
 }
 
 export async function updateBlock(id: string, formData: FormData) {
-  await requireOwner();
+  await requireHorariosEnabled();
   const data = parseBlockForm(formData);
 
   await db.scheduleBlock.update({ where: { id }, data });
@@ -42,7 +42,7 @@ export async function updateBlock(id: string, formData: FormData) {
 }
 
 export async function deleteBlock(id: string) {
-  await requireOwner();
+  await requireHorariosEnabled();
   await db.scheduleBlock.delete({ where: { id } });
   revalidatePath("/horarios");
   revalidatePath("/");
@@ -61,7 +61,7 @@ function parseEntryForm(formData: FormData) {
 }
 
 export async function createEntry(blockId: string, formData: FormData) {
-  await requireOwner();
+  await requireHorariosEnabled();
   const data = parseEntryForm(formData);
 
   await db.scheduleEntry.create({ data: { ...data, blockId } });
@@ -73,7 +73,7 @@ export async function createEntry(blockId: string, formData: FormData) {
 }
 
 export async function updateEntry(id: string, blockId: string, formData: FormData) {
-  await requireOwner();
+  await requireHorariosEnabled();
   const data = parseEntryForm(formData);
 
   await db.scheduleEntry.update({ where: { id }, data });
@@ -85,7 +85,7 @@ export async function updateEntry(id: string, blockId: string, formData: FormDat
 }
 
 export async function deleteEntry(id: string, blockId: string) {
-  await requireOwner();
+  await requireHorariosEnabled();
   await db.scheduleEntry.delete({ where: { id } });
   revalidatePath("/horarios");
   revalidatePath(`/horarios/${blockId}/editar`);

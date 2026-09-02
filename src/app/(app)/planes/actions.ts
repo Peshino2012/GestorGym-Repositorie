@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireOwner } from "@/lib/authz";
+import { requirePlanesEnabled } from "@/lib/authz";
 import { notifyPublicSite } from "@/lib/notifyPublicSite";
 import type { BillingCycle } from "@/generated/prisma/client";
 
@@ -20,7 +20,7 @@ function parsePlanForm(formData: FormData) {
 }
 
 export async function createPlan(formData: FormData) {
-  await requireOwner();
+  await requirePlanesEnabled();
   const data = parsePlanForm(formData);
 
   await db.plan.create({ data });
@@ -31,7 +31,7 @@ export async function createPlan(formData: FormData) {
 }
 
 export async function updatePlan(id: string, formData: FormData) {
-  await requireOwner();
+  await requirePlanesEnabled();
   const data = parsePlanForm(formData);
 
   await db.plan.update({ where: { id }, data });
@@ -42,14 +42,14 @@ export async function updatePlan(id: string, formData: FormData) {
 }
 
 export async function togglePlanActive(id: string, active: boolean) {
-  await requireOwner();
+  await requirePlanesEnabled();
   await db.plan.update({ where: { id }, data: { active } });
   revalidatePath("/planes");
   await notifyPublicSite();
 }
 
 export async function setFeaturedPlan(id: string) {
-  await requireOwner();
+  await requirePlanesEnabled();
   await db.$transaction([
     db.plan.updateMany({ data: { featured: false }, where: { featured: true } }),
     db.plan.update({ where: { id }, data: { featured: true } }),
@@ -59,7 +59,7 @@ export async function setFeaturedPlan(id: string) {
 }
 
 export async function deletePlan(id: string) {
-  await requireOwner();
+  await requirePlanesEnabled();
 
   const membersCount = await db.member.count({ where: { planId: id } });
   if (membersCount > 0) {

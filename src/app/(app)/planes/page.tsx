@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Pencil, Star } from "lucide-react";
-import { requireOwner, requirePlanesEnabled } from "@/lib/authz";
+import { requirePlanesEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
@@ -13,7 +13,6 @@ const CYCLE_LABEL: Record<string, string> = {
 };
 
 export default async function PlanesPage() {
-  await requireOwner();
   await requirePlanesEnabled();
 
   const plans = await db.plan.findMany({
