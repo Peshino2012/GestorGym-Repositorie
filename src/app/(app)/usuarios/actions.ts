@@ -9,12 +9,12 @@ import { requireOwner } from "@/lib/authz";
 
 export type UserFormState = { error?: string };
 
+// `email` is User's only @unique field besides id, so any P2002 from a user
+// create/update is this constraint — no need to inspect which field.
+// (err.meta.target isn't reliable here: the driver-adapter Prisma client
+// reports P2002 without a `target` at all, just {modelName, driverAdapterError}.)
 function isUniqueEmailError(err: unknown) {
-  return (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
-    err.code === "P2002" &&
-    (err.meta?.target as string[] | undefined)?.includes("email")
-  );
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
 }
 
 export async function createStaffUser(
