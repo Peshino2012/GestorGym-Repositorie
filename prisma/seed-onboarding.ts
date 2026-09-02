@@ -1,10 +1,8 @@
 import bcrypt from "bcryptjs";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-const adapter = new PrismaBetterSqlite3({
-  url: (process.env.DATABASE_URL ?? "file:./dev.db").replace(/^file:/, ""),
-});
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
 // One-time setup for a real, newly-created gym — unlike seed.ts (dev demo
