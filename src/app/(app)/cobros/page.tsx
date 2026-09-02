@@ -52,7 +52,7 @@ export default async function CobrosPage({
       take: 8,
     }),
     getPaymentStatusBreakdown(),
-    db.member.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.member.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, dni: true } }),
     db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" }, select: { id: true, name: true, price: true } }),
     db.payment.findMany({
       where: { status: { in: ["PENDING", "OVERDUE"] } },
@@ -62,10 +62,18 @@ export default async function CobrosPage({
 
   const membersWithActivePayment = [...new Set(activePayments.map((p) => p.memberId))];
 
-  const vencidos = payments.filter((p) => p.status === "OVERDUE");
+  const RECENT_LIMIT = 5;
+  const vencidosAll = payments.filter((p) => p.status === "OVERDUE");
   const porVencer = payments.filter((p) => p.status === "PENDING" && p.dueDate <= markPaidCutoff);
   const alDia = payments.filter((p) => p.status === "PENDING" && p.dueDate > markPaidCutoff);
-  const historial = payments.filter((p) => p.status === "PAID");
+  const historialAll = payments.filter((p) => p.status === "PAID");
+
+  // Unfiltered view: show only the most recent few per section, with a link
+  // to the full filtered list — a gym running for a while can have hundreds
+  // of paid/vencido rows, and dumping all of them here defeats the point of
+  // splitting into sections in the first place.
+  const vencidos = isFiltered ? vencidosAll : vencidosAll.slice(0, RECENT_LIMIT);
+  const historial = isFiltered ? historialAll : historialAll.slice(0, RECENT_LIMIT);
 
   return (
     <div className="flex flex-col gap-8">
@@ -130,7 +138,14 @@ export default async function CobrosPage({
           ) : (
             <>
               {vencidos.length > 0 && (
-                <CobrosSection title="Vencidos" count={vencidos.length} tone="danger" defaultOpen>
+                <CobrosSection
+                  title="Vencidos"
+                  count={vencidosAll.length}
+                  shown={vencidos.length}
+                  viewAllHref={!isFiltered && vencidosAll.length > vencidos.length ? "/cobros?status=OVERDUE" : undefined}
+                  tone="danger"
+                  defaultOpen
+                >
                   <CobrosTable payments={vencidos} markPaidCutoff={markPaidCutoff} />
                 </CobrosSection>
               )}
@@ -145,7 +160,13 @@ export default async function CobrosPage({
                 </CobrosSection>
               )}
               {historial.length > 0 && (
-                <CobrosSection title="Historial (pagados)" count={historial.length} tone="muted">
+                <CobrosSection
+                  title="Historial (pagados)"
+                  count={historialAll.length}
+                  shown={historial.length}
+                  viewAllHref={!isFiltered && historialAll.length > historial.length ? "/cobros?status=PAID" : undefined}
+                  tone="muted"
+                >
                   <CobrosTable payments={historial} markPaidCutoff={markPaidCutoff} />
                 </CobrosSection>
               )}
@@ -214,12 +235,16 @@ const SECTION_TONE = {
 function CobrosSection({
   title,
   count,
+  shown,
+  viewAllHref,
   tone,
   defaultOpen = false,
   children,
 }: {
   title: string;
   count: number;
+  shown?: number;
+  viewAllHref?: string;
   tone: keyof typeof SECTION_TONE;
   defaultOpen?: boolean;
   children: ReactNode;
@@ -231,13 +256,24 @@ function CobrosSection({
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-3.5 select-none">
         <span className={`text-sm font-semibold ${SECTION_TONE[tone]}`}>
-          {title} <span className="text-muted-foreground">({count})</span>
+          {title}{" "}
+          <span className="text-muted-foreground">
+            ({shown !== undefined && shown < count ? `${shown} de ${count}` : count})
+          </span>
         </span>
         <span className="text-xs text-muted-foreground transition-transform duration-200 group-open:rotate-180">
           ▾
         </span>
       </summary>
       <div className="border-t border-border">{children}</div>
+      {viewAllHref && (
+        <Link
+          href={viewAllHref}
+          className="block border-t border-border px-5 py-2.5 text-center text-xs font-semibold text-primary hover:underline"
+        >
+          Ver los {count} completos →
+        </Link>
+      )}
     </details>
   );
 }

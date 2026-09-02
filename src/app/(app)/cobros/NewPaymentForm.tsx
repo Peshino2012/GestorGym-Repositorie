@@ -1,12 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import MemberCombobox from "@/components/MemberCombobox";
+import StatusBadge from "@/components/StatusBadge";
+import { getMemberPaymentHistory } from "./actions";
 
-type Member = { id: string; name: string };
+type Member = { id: string; name: string; dni?: string | null };
 type Plan = { id: string; name: string; price: number };
+type HistoryEntry = {
+  id: string;
+  amount: number;
+  dueDate: Date;
+  paidAt: Date | null;
+  status: "PENDING" | "PAID" | "OVERDUE";
+};
 
 export default function NewPaymentForm({
   members,
@@ -21,6 +31,19 @@ export default function NewPaymentForm({
 }) {
   const amountRef = useRef<HTMLInputElement>(null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loadingHistory, startHistoryTransition] = useTransition();
+
+  useEffect(() => {
+    let cancelled = false;
+    startHistoryTransition(async () => {
+      const rows = await getMemberPaymentHistory(selectedMemberId);
+      if (!cancelled) setHistory(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMemberId]);
 
   function handlePlanChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const plan = plans.find((p) => p.id === e.target.value);
@@ -44,7 +67,7 @@ export default function NewPaymentForm({
           name="memberId"
           members={members}
           required
-          placeholder="Buscar socio por nombre..."
+          placeholder="Buscar socio por nombre o DNI..."
           onSelect={setSelectedMemberId}
           suffixFor={(id) => (membersWithActivePayment.includes(id) ? " (ya tiene un cobro pendiente)" : "")}
         />
@@ -54,6 +77,35 @@ export default function NewPaymentForm({
             {selectedMember.name} ya tiene un cobro pendiente o vencido registrado. Resolvé ese primero
             (marcalo pagado o editalo) antes de crear uno nuevo.
           </p>
+        )}
+        {selectedMember && !blocked && (
+          <div className="mt-1.5 rounded-lg border border-border bg-background px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground">
+              Historial de {selectedMember.name}
+            </p>
+            {loadingHistory ? (
+              <p className="mt-1 text-xs text-muted-foreground">Cargando...</p>
+            ) : history.length === 0 ? (
+              <p className="mt-1 text-xs text-muted-foreground">Todavía no tiene cobros registrados.</p>
+            ) : (
+              <ul className="mt-1.5 flex flex-col gap-1">
+                {history.map((h) => (
+                  <li key={h.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground">{formatDate(h.dueDate)}</span>
+                    <span className="font-medium">{formatCurrency(h.amount)}</span>
+                    <StatusBadge status={h.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href={`/cobros?memberId=${selectedMember.id}`}
+              target="_blank"
+              className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
+            >
+              Ver historial completo →
+            </Link>
+          </div>
         )}
       </div>
       <div>

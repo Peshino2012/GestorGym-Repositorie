@@ -17,6 +17,16 @@ function isDuplicateActivePaymentError(err: unknown) {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
 }
 
+export async function getMemberPaymentHistory(memberId: string) {
+  if (!memberId) return [];
+  return db.payment.findMany({
+    where: { memberId },
+    orderBy: { dueDate: "desc" },
+    take: 5,
+    select: { id: true, amount: true, dueDate: true, paidAt: true, status: true },
+  });
+}
+
 export async function markPaid(paymentId: string) {
   // Idempotency guard: a double-click (or a slow request retried) would
   // otherwise run this twice and generate two renewal cobros for the same
