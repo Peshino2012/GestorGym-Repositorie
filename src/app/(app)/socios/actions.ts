@@ -93,8 +93,6 @@ export async function updateMember(
   _prevState: MemberFormState,
   formData: FormData
 ): Promise<MemberFormState> {
-  await requireOwner();
-
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();

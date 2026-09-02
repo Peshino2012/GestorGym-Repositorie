@@ -57,23 +57,21 @@ export default async function SocioDetailPage({
         </div>
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Link
+            href={`/socios/${member.id}/editar`}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+          >
+            <Pencil className="h-4 w-4" /> Editar
+          </Link>
           {isOwner && (
-            <>
-              <Link
-                href={`/socios/${member.id}/editar`}
-                className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
+            <form action={archiveMember.bind(null, member.id)}>
+              <ConfirmSubmitButton
+                confirmMessage={`¿Archivar a ${member.name}? No va a aparecer más en la lista de socios, pero podés restaurarlo desde "Archivados".`}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
               >
-                <Pencil className="h-4 w-4" /> Editar
-              </Link>
-              <form action={archiveMember.bind(null, member.id)}>
-                <ConfirmSubmitButton
-                  confirmMessage={`¿Archivar a ${member.name}? No va a aparecer más en la lista de socios, pero podés restaurarlo desde "Archivados".`}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background"
-                >
-                  <Archive className="h-4 w-4" /> Archivar
-                </ConfirmSubmitButton>
-              </form>
-            </>
+                <Archive className="h-4 w-4" /> Archivar
+              </ConfirmSubmitButton>
+            </form>
           )}
           <Link
             href={`/socios/${member.id}/credencial`}
