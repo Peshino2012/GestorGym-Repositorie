@@ -8,6 +8,7 @@ import { paymentReminderMessage } from "@/lib/messages";
 import { syncOverduePayments } from "@/lib/paymentSync";
 import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import PendingSubmitButton from "@/components/PendingSubmitButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
 import MemberCombobox from "@/components/MemberCombobox";
@@ -168,14 +169,13 @@ export default async function CobrosPage({
                           </form>
                           {(p.status === "OVERDUE" || p.dueDate <= markPaidCutoff) && (
                             <form action={markPaid.bind(null, p.id)}>
-                              <button
-                                type="submit"
+                              <PendingSubmitButton
                                 aria-label="Marcar como pagado"
-                                className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
+                                className="group flex items-center gap-1.5 rounded-lg bg-success px-2.5 py-1.5 text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 active:scale-[0.96] disabled:opacity-60 sm:px-3"
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
                                 <span className="hidden sm:inline">Marcar pagado</span>
-                              </button>
+                              </PendingSubmitButton>
                             </form>
                           )}
                           <Link
