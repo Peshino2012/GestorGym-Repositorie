@@ -8,7 +8,8 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "seed:onboarding": "tsx prisma/seed-onboarding.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
