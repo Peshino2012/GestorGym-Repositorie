@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { format } from "date-fns";
 import { TriangleAlert } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { computeNextDueDate } from "@/lib/billing";
 import MemberCombobox from "@/components/MemberCombobox";
 import StatusBadge from "@/components/StatusBadge";
 import { getMemberPaymentHistory } from "./actions";
+import type { BillingCycle } from "@/generated/prisma/client";
 
 type Member = { id: string; name: string; dni?: string | null };
-type Plan = { id: string; name: string; price: number };
+type Plan = { id: string; name: string; price: number; billingCycle: BillingCycle };
 type HistoryEntry = {
   id: string;
   amount: number;
@@ -30,6 +33,7 @@ export default function NewPaymentForm({
   action: (formData: FormData) => void;
 }) {
   const amountRef = useRef<HTMLInputElement>(null);
+  const dueDateRef = useRef<HTMLInputElement>(null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loadingHistory, startHistoryTransition] = useTransition();
@@ -47,8 +51,12 @@ export default function NewPaymentForm({
 
   function handlePlanChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const plan = plans.find((p) => p.id === e.target.value);
-    if (plan && amountRef.current) {
+    if (!plan) return;
+    if (amountRef.current) {
       amountRef.current.value = String(plan.price);
+    }
+    if (dueDateRef.current) {
+      dueDateRef.current.value = format(computeNextDueDate(new Date(), plan.billingCycle), "yyyy-MM-dd");
     }
   }
 
@@ -78,7 +86,7 @@ export default function NewPaymentForm({
             (marcalo pagado o editalo) antes de crear uno nuevo.
           </p>
         )}
-        {selectedMember && !blocked && (
+        {selectedMember && (
           <div className="mt-1.5 rounded-lg border border-border bg-background px-3 py-2">
             <p className="text-xs font-semibold text-muted-foreground">
               Historial de {selectedMember.name}
@@ -91,7 +99,11 @@ export default function NewPaymentForm({
               <ul className="mt-1.5 flex flex-col gap-1">
                 {history.map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="text-muted-foreground">{formatDate(h.dueDate)}</span>
+                    <span className="text-muted-foreground">
+                      {h.status === "PAID" && h.paidAt
+                        ? `Pagó el ${formatDate(h.paidAt)} (vencía ${formatDate(h.dueDate)})`
+                        : `Vence ${formatDate(h.dueDate)}`}
+                    </span>
                     <span className="font-medium">{formatCurrency(h.amount)}</span>
                     <StatusBadge status={h.status} />
                   </li>
@@ -153,12 +165,16 @@ export default function NewPaymentForm({
           Vencimiento
         </label>
         <input
+          ref={dueDateRef}
           id="dueDate"
           name="dueDate"
           type="date"
           required
           className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Se completa solo según el plan elegido y la fecha de hoy; podés editarla si hace falta.
+        </p>
       </div>
       <button
         type="submit"
