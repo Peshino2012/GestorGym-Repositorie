@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { requireOwner } from "@/lib/authz";
 import { db } from "@/lib/db";
 import EditSocioForm from "./EditSocioForm";
 
@@ -10,7 +9,6 @@ export default async function EditarSocioPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireOwner();
   const { id } = await params;
 
   const [member, plans] = await Promise.all([
