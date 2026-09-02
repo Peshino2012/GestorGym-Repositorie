@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Member = { id: string; name: string };
+type Member = { id: string; name: string; dni?: string | null };
 
 export default function MemberCombobox({
   members,
@@ -41,7 +41,10 @@ export default function MemberCombobox({
   }, []);
 
   const filtered = query.trim()
-    ? members.filter((m) => m.name.toLowerCase().includes(query.trim().toLowerCase()))
+    ? members.filter((m) => {
+        const q = query.trim().toLowerCase();
+        return m.name.toLowerCase().includes(q) || m.dni?.toLowerCase().includes(q);
+      })
     : members;
 
   function select(m: Member) {
@@ -96,6 +99,7 @@ export default function MemberCombobox({
                   className="block w-full px-3.5 py-2 text-left text-sm hover:bg-background"
                 >
                   {m.name}
+                  {m.dni ? ` — DNI ${m.dni}` : ""}
                   {suffixFor?.(m.id)}
                 </button>
               </li>
