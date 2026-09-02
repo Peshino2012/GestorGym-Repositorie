@@ -1,20 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import type { MemberFormState } from "@/app/(app)/socios/actions";
 
 type Plan = { id: string; name: string; price: number };
 
 const STEPS = ["Datos personales", "Contacto de emergencia (opcional)", "Foto (opcional)"];
+
+const initialState: MemberFormState = {};
 
 export default function SocioWizard({
   plans,
   action,
 }: {
   plans: Plan[];
-  action: (formData: FormData) => void;
+  action: (prevState: MemberFormState, formData: FormData) => Promise<MemberFormState>;
 }) {
+  const [state, formAction, pending] = useActionState(action, initialState);
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
@@ -44,7 +48,7 @@ export default function SocioWizard({
 
   return (
     <form
-      action={action}
+      action={formAction}
       className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-7"
     >
       <ol className="flex items-center">
@@ -211,7 +215,9 @@ export default function SocioWizard({
         </label>
       </fieldset>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {(error || state.error) && (
+        <p className="text-sm text-danger">{error || state.error}</p>
+      )}
 
       <div className="flex justify-between">
         {step > 1 ? (
@@ -237,9 +243,10 @@ export default function SocioWizard({
         ) : (
           <button
             type="submit"
-            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+            disabled={pending}
+            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97] disabled:opacity-60"
           >
-            Crear socio
+            {pending ? "Creando..." : "Crear socio"}
           </button>
         )}
       </div>

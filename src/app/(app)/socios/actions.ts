@@ -3,10 +3,21 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { addDays } from "date-fns";
+import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { saveUploadedFile } from "@/lib/upload";
 import { requireOwner } from "@/lib/authz";
 import type { MemberStatus } from "@/generated/prisma/client";
+
+export type MemberFormState = { error?: string };
+
+// `dni` is Member's only @unique field besides id, so any P2002 from a
+// member create/update is this constraint — no need to inspect which field.
+// (err.meta.target isn't reliable here: the driver-adapter Prisma client
+// reports P2002 without a `target` at all, just {modelName, driverAdapterError}.)
+function isUniqueDniError(err: unknown) {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+}
 
 export async function registerCheckIn(memberId: string) {
   await db.checkIn.create({ data: { memberId } });
@@ -15,7 +26,10 @@ export async function registerCheckIn(memberId: string) {
   revalidatePath("/riesgo");
 }
 
-export async function createMember(formData: FormData) {
+export async function createMember(
+  _prevState: MemberFormState,
+  formData: FormData
+): Promise<MemberFormState> {
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -27,24 +41,32 @@ export async function createMember(formData: FormData) {
   const photo = formData.get("photo");
 
   if (!name || !phone || !planId) {
-    throw new Error("Nombre, teléfono y plan son obligatorios");
+    return { error: "Nombre, teléfono y plan son obligatorios" };
   }
 
   const plan = await db.plan.findUniqueOrThrow({ where: { id: planId } });
 
-  const member = await db.member.create({
-    data: {
-      name,
-      phone,
-      email: email || null,
-      dni: dni || null,
-      planId,
-      status: "ACTIVE",
-      emergencyName: emergencyName || null,
-      emergencyPhone: emergencyPhone || null,
-      emergencyNotes: emergencyNotes || null,
-    },
-  });
+  let member;
+  try {
+    member = await db.member.create({
+      data: {
+        name,
+        phone,
+        email: email || null,
+        dni: dni || null,
+        planId,
+        status: "ACTIVE",
+        emergencyName: emergencyName || null,
+        emergencyPhone: emergencyPhone || null,
+        emergencyNotes: emergencyNotes || null,
+      },
+    });
+  } catch (err) {
+    if (isUniqueDniError(err)) {
+      return { error: "Ya existe un socio con ese DNI." };
+    }
+    throw err;
+  }
 
   if (photo instanceof File && photo.size > 0) {
     const photoUrl = await saveUploadedFile(photo, "members", member.id);
@@ -66,7 +88,11 @@ export async function createMember(formData: FormData) {
   redirect(`/socios/${member.id}`);
 }
 
-export async function updateMember(id: string, formData: FormData) {
+export async function updateMember(
+  id: string,
+  _prevState: MemberFormState,
+  formData: FormData
+): Promise<MemberFormState> {
   await requireOwner();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -81,7 +107,7 @@ export async function updateMember(id: string, formData: FormData) {
   const photo = formData.get("photo");
 
   if (!name || !phone || !planId) {
-    throw new Error("Nombre, teléfono y plan son obligatorios");
+    return { error: "Nombre, teléfono y plan son obligatorios" };
   }
 
   const photoUrl =
@@ -89,21 +115,28 @@ export async function updateMember(id: string, formData: FormData) {
       ? await saveUploadedFile(photo, "members", id)
       : undefined;
 
-  await db.member.update({
-    where: { id },
-    data: {
-      name,
-      phone,
-      email: email || null,
-      dni: dni || null,
-      planId,
-      status,
-      emergencyName: emergencyName || null,
-      emergencyPhone: emergencyPhone || null,
-      emergencyNotes: emergencyNotes || null,
-      ...(photoUrl ? { photoUrl } : {}),
-    },
-  });
+  try {
+    await db.member.update({
+      where: { id },
+      data: {
+        name,
+        phone,
+        email: email || null,
+        dni: dni || null,
+        planId,
+        status,
+        emergencyName: emergencyName || null,
+        emergencyPhone: emergencyPhone || null,
+        emergencyNotes: emergencyNotes || null,
+        ...(photoUrl ? { photoUrl } : {}),
+      },
+    });
+  } catch (err) {
+    if (isUniqueDniError(err)) {
+      return { error: "Ya existe otro socio con ese DNI." };
+    }
+    throw err;
+  }
 
   revalidatePath(`/socios/${id}`);
   revalidatePath("/socios");
