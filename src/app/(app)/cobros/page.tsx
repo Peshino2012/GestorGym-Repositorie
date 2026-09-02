@@ -321,7 +321,9 @@ function CobrosTable({
               <td className="px-5 py-3">
                 {p.status === "PENDING" ? (
                   <span className="text-xs text-muted-foreground">
-                    Próximo pago: {formatDate(p.dueDate)}
+                    {p.dueDate < new Date()
+                      ? `Pendiente — venció el ${formatDate(p.dueDate)}`
+                      : `Próximo pago: ${formatDate(p.dueDate)}`}
                   </span>
                 ) : (
                   <StatusBadge status={p.status} />

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { db } from "@/lib/db";
+import { toDateInputValue } from "@/lib/format";
 import { updatePayment } from "../../actions";
 
 export default async function EditarCobroPage({
@@ -19,7 +20,7 @@ export default async function EditarCobroPage({
   if (!payment) notFound();
   if (payment.status === "PAID") redirect(`/socios/${payment.memberId}`);
 
-  const dueDateValue = payment.dueDate.toISOString().slice(0, 10);
+  const dueDateValue = toDateInputValue(payment.dueDate);
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">

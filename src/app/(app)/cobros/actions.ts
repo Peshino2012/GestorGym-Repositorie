@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { paymentReminderMessage } from "@/lib/messages";
 import { computeNextDueDate } from "@/lib/billing";
+import { parseDateInput } from "@/lib/format";
 
 // Belt-and-suspenders for the application-level checks below: the database
 // itself has a unique index rejecting a second PENDING/OVERDUE payment for
@@ -122,7 +123,7 @@ export async function createPayment(formData: FormData) {
         memberId,
         planId,
         amount: Math.round(amount),
-        dueDate: new Date(dueDate),
+        dueDate: parseDateInput(dueDate),
         status: "PENDING",
       },
     });
@@ -151,7 +152,7 @@ export async function updatePayment(id: string, formData: FormData) {
 
   await db.payment.update({
     where: { id },
-    data: { amount: Math.round(amount), dueDate: new Date(dueDate) },
+    data: { amount: Math.round(amount), dueDate: parseDateInput(dueDate) },
   });
 
   revalidatePath("/cobros");
