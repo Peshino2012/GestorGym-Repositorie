@@ -135,6 +135,7 @@ export async function updateUserModuleAccess(userId: string, formData: FormData)
       canAccessClasses: formData.get("canAccessClasses") === "on",
       canAccessHorarios: formData.get("canAccessHorarios") === "on",
       canAccessPlanes: formData.get("canAccessPlanes") === "on",
+      canAccessCheckin: formData.get("canAccessCheckin") === "on",
     },
   });
   revalidatePath("/configuracion");

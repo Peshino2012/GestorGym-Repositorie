@@ -122,51 +122,6 @@ export default async function ConfiguracionPage() {
           />
         </label>
 
-        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-          <span>
-            <span className="block text-sm font-medium">Clases</span>
-            <span className="block text-xs text-muted-foreground">
-              Habilita el módulo de Clases (agenda, reservas) y la sección &quot;Nuestras clases&quot; en el sitio público.
-            </span>
-          </span>
-          <input
-            type="checkbox"
-            name="classesEnabled"
-            defaultChecked={gym.classesEnabled}
-            className="h-5 w-9 shrink-0 accent-primary"
-          />
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-          <span>
-            <span className="block text-sm font-medium">Horarios</span>
-            <span className="block text-xs text-muted-foreground">
-              Habilita la página de Horarios en el panel y la sección de horarios en el sitio público.
-            </span>
-          </span>
-          <input
-            type="checkbox"
-            name="horariosEnabled"
-            defaultChecked={gym.horariosEnabled}
-            className="h-5 w-9 shrink-0 accent-primary"
-          />
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-          <span>
-            <span className="block text-sm font-medium">Planes</span>
-            <span className="block text-xs text-muted-foreground">
-              Habilita la sección &quot;Planes&quot; en el sitio público y su página en el panel.
-            </span>
-          </span>
-          <input
-            type="checkbox"
-            name="planesEnabled"
-            defaultChecked={gym.planesEnabled}
-            className="h-5 w-9 shrink-0 accent-primary"
-          />
-        </label>
-
         <button
           type="submit"
           className="mt-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
@@ -227,6 +182,16 @@ export default async function ConfiguracionPage() {
                   type="checkbox"
                   name="canAccessPlanes"
                   defaultChecked={user.canAccessPlanes}
+                  className="h-5 w-9 shrink-0 accent-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                <span className="text-sm font-medium">Registro (check-in por DNI)</span>
+                <input
+                  type="checkbox"
+                  name="canAccessCheckin"
+                  defaultChecked={user.canAccessCheckin}
                   className="h-5 w-9 shrink-0 accent-primary"
                 />
               </label>
