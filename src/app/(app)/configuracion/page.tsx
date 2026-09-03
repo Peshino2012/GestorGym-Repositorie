@@ -177,7 +177,17 @@ export default async function ConfiguracionPage() {
               </label>
 
               <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-                <span className="text-sm font-medium">Planes</span>
+                <span className="text-sm font-medium">Plan (cuota del gimnasio)</span>
+                <input
+                  type="checkbox"
+                  name="canAccessPlan"
+                  defaultChecked={user.canAccessPlan}
+                  className="h-5 w-9 shrink-0 accent-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                <span className="text-sm font-medium">Planes (varios planes, función paga)</span>
                 <input
                   type="checkbox"
                   name="canAccessPlanes"

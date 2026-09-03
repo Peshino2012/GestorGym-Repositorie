@@ -27,7 +27,7 @@ const NAV = [
   { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requires: null },
   { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requires: "classes" as const },
   { href: "/horarios", label: "Horarios", icon: Clock, ownerOnly: false, requires: "horarios" as const },
-  { href: "/plan", label: "Plan", icon: Tag, ownerOnly: false, requires: "planes" as const },
+  { href: "/plan", label: "Plan", icon: Tag, ownerOnly: false, requires: "plan" as const },
   { href: "/planes", label: "Planes", icon: Tag, ownerOnly: false, requires: "planes" as const },
   { href: "/profesores", label: "Profesores", icon: GraduationCap, ownerOnly: true, requires: null },
   { href: "/galeria", label: "Galería", icon: Images, ownerOnly: true, requires: null },
@@ -39,6 +39,7 @@ export default function Sidebar({
   role,
   canAccessClasses = true,
   canAccessHorarios = true,
+  canAccessPlan = true,
   canAccessPlanes = true,
   canAccessCheckin = true,
   planesModuleEnabled = false,
@@ -48,6 +49,7 @@ export default function Sidebar({
   role?: "OWNER" | "STAFF";
   canAccessClasses?: boolean;
   canAccessHorarios?: boolean;
+  canAccessPlan?: boolean;
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
   planesModuleEnabled?: boolean;
@@ -66,6 +68,7 @@ export default function Sidebar({
     if (role === "OWNER") return true;
     if (item.requires === "classes" && !canAccessClasses) return false;
     if (item.requires === "horarios" && !canAccessHorarios) return false;
+    if (item.requires === "plan" && !canAccessPlan) return false;
     if (item.requires === "planes" && !canAccessPlanes) return false;
     if (item.requires === "checkin" && !canAccessCheckin) return false;
     return true;

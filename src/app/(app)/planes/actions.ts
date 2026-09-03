@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requirePlanesEnabled, requirePlanesModulePaid, requireCanCreatePlan } from "@/lib/authz";
+import {
+  requirePlanOrPlanesAccess,
+  requirePlanesModulePaid,
+  requireCanCreatePlan,
+  isPlanesModuleEnabled,
+} from "@/lib/authz";
 import { notifyPublicSite } from "@/lib/notifyPublicSite";
 import type { BillingCycle } from "@/generated/prisma/client";
 
@@ -26,19 +31,21 @@ export async function createPlan(formData: FormData) {
   await db.plan.create({ data });
 
   revalidatePath("/planes");
+  revalidatePath("/plan");
   await notifyPublicSite();
-  redirect("/planes");
+  redirect((await isPlanesModuleEnabled()) ? "/planes" : "/plan");
 }
 
 export async function updatePlan(id: string, formData: FormData) {
-  await requirePlanesEnabled();
+  await requirePlanOrPlanesAccess();
   const data = parsePlanForm(formData);
 
   await db.plan.update({ where: { id }, data });
 
   revalidatePath("/planes");
+  revalidatePath("/plan");
   await notifyPublicSite();
-  redirect("/planes");
+  redirect((await isPlanesModuleEnabled()) ? "/planes" : "/plan");
 }
 
 export async function togglePlanActive(id: string, active: boolean) {

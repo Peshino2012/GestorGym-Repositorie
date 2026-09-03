@@ -23,6 +23,7 @@ export default async function AppLayout({
 
   let canAccessClasses = true;
   let canAccessHorarios = true;
+  let canAccessPlan = true;
   let canAccessPlanes = true;
   let canAccessCheckin = true;
 
@@ -32,12 +33,14 @@ export default async function AppLayout({
       select: {
         canAccessClasses: true,
         canAccessHorarios: true,
+        canAccessPlan: true,
         canAccessPlanes: true,
         canAccessCheckin: true,
       },
     });
     canAccessClasses = permissions?.canAccessClasses ?? true;
     canAccessHorarios = permissions?.canAccessHorarios ?? true;
+    canAccessPlan = permissions?.canAccessPlan ?? true;
     canAccessPlanes = permissions?.canAccessPlanes ?? true;
     canAccessCheckin = permissions?.canAccessCheckin ?? true;
   }
@@ -47,6 +50,7 @@ export default async function AppLayout({
       role={session?.user?.role}
       canAccessClasses={canAccessClasses}
       canAccessHorarios={canAccessHorarios}
+      canAccessPlan={canAccessPlan}
       canAccessPlanes={canAccessPlanes}
       canAccessCheckin={canAccessCheckin}
       planesModuleEnabled={planesModuleEnabled}

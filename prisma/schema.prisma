@@ -19,6 +19,7 @@ model User {
   createdAt          DateTime @default(now())
   canAccessClasses   Boolean  @default(true)
   canAccessHorarios  Boolean  @default(true)
+  canAccessPlan      Boolean  @default(true)
   canAccessPlanes    Boolean  @default(true)
   canAccessCheckin   Boolean  @default(true)
 }

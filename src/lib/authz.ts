@@ -39,11 +39,27 @@ export async function requireHorariosEnabled() {
 }
 
 // Gates "/plan" (the always-free single-plan editor, see
-// src/app/(app)/plan/) and the update/create actions both "/plan" and
-// "/planes" share — per-user permission only, same shape as
-// Clases/Horarios. Deliberately has no module-paid check: every gym needs
-// to be able to see and edit its one base plan no matter what they've
-// paid for.
+// src/app/(app)/plan/) — its own permission, fully independent of Planes
+// (canAccessPlanes below). A gym's one base plan has nothing to do with
+// the paid multi-plan module, so access to it is a separate toggle in
+// Configuración, not a side effect of the Planes checkbox.
+export async function requirePlanAccess() {
+  const session = await auth();
+  if (session?.user?.role === "OWNER") return;
+  if (!session?.user?.id) redirect("/dashboard");
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { canAccessPlan: true },
+  });
+  if (!user?.canAccessPlan) {
+    redirect("/dashboard");
+  }
+}
+
+// Gates "/planes" (the full multi-plan management page) — per-user
+// permission only, same shape as Clases/Horarios. Independent of
+// canAccessPlan above.
 export async function requirePlanesEnabled() {
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
@@ -54,6 +70,23 @@ export async function requirePlanesEnabled() {
     select: { canAccessPlanes: true },
   });
   if (!user?.canAccessPlanes) {
+    redirect("/dashboard");
+  }
+}
+
+// updatePlan/createPlan are shared by both "/plan" and "/planes" (same
+// underlying edit-a-plan-row logic either way), so they're reachable with
+// EITHER permission — whichever page you got there from.
+export async function requirePlanOrPlanesAccess() {
+  const session = await auth();
+  if (session?.user?.role === "OWNER") return;
+  if (!session?.user?.id) redirect("/dashboard");
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { canAccessPlan: true, canAccessPlanes: true },
+  });
+  if (!user?.canAccessPlan && !user?.canAccessPlanes) {
     redirect("/dashboard");
   }
 }
@@ -84,7 +117,7 @@ export async function requirePlanesModulePaid(redirectTo: string = "/planes") {
 // gym that somehow has none yet still needs a way to make one via "/plan".
 // Only a SECOND plan (via "/planes") requires the paid module.
 export async function requireCanCreatePlan() {
-  await requirePlanesEnabled();
+  await requirePlanOrPlanesAccess();
   if (await isPlanesModuleEnabled()) return;
   const planCount = await db.plan.count();
   if (planCount > 0) {
