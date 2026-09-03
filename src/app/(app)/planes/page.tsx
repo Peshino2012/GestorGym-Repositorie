@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Pencil, Star } from "lucide-react";
-import { requirePlanesEnabled } from "@/lib/authz";
+import { requirePlanesEnabled, isPlanesModuleEnabled } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
-import { createPlan, togglePlanActive, deletePlan, setFeaturedPlan } from "./actions";
+import { createPlan, togglePlanActive, deletePlan, setFeaturedPlan, updatePlan } from "./actions";
+import BasePlanEditor from "./BasePlanEditor";
 
 const CYCLE_LABEL: Record<string, string> = {
   MONTHLY: "Mensual",
@@ -15,10 +16,17 @@ const CYCLE_LABEL: Record<string, string> = {
 export default async function PlanesPage() {
   await requirePlanesEnabled();
 
-  const plans = await db.plan.findMany({
-    orderBy: { price: "asc" },
-    include: { _count: { select: { members: true } } },
-  });
+  const [moduleEnabled, plans] = await Promise.all([
+    isPlanesModuleEnabled(),
+    db.plan.findMany({
+      orderBy: { price: "asc" },
+      include: { _count: { select: { members: true } } },
+    }),
+  ]);
+
+  if (!moduleEnabled) {
+    return <BasePlanEditor plan={plans[0] ?? null} action={updatePlan} />;
+  }
 
   return (
     <div className="flex flex-col gap-6">

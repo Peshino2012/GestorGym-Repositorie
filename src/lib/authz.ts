@@ -38,20 +38,13 @@ export async function requireHorariosEnabled() {
   }
 }
 
-// Multi-plan management is a paid upsell, not something a gym self-serves —
-// gated by an env var only we set (per Vercel project), so it's out of
-// reach of the gym's own Configuración. Every gym still gets exactly one
-// base Plan from onboarding (see seed-onboarding.ts) whether or not this
-// is on; this only decides whether they can manage MORE than that one.
-export async function isPlanesModuleEnabled() {
-  return process.env.PLANES_MODULE_ENABLED === "true";
-}
-
+// The /planes page itself is always reachable by anyone with the Planes
+// permission — every gym has at least one base Plan (created at onboarding)
+// that they need to be able to see and edit regardless of what they've
+// paid for. What's gated is having MORE than that one plan (see
+// requirePlanesModulePaid below) — the page renders a simple one-plan
+// editor instead of full multi-plan management when that's off.
 export async function requirePlanesEnabled() {
-  if (!(await isPlanesModuleEnabled())) {
-    redirect("/dashboard");
-  }
-
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
   if (!session?.user?.id) redirect("/dashboard");
@@ -62,6 +55,22 @@ export async function requirePlanesEnabled() {
   });
   if (!user?.canAccessPlanes) {
     redirect("/dashboard");
+  }
+}
+
+// Multi-plan management is a paid upsell, not something a gym self-serves —
+// gated by an env var only we set (per Vercel project), so it's out of
+// reach of the gym's own Configuración. Used only by the actions that only
+// make sense with more than one plan (create/delete/feature/toggle) —
+// editing the existing plan(s) stays available either way.
+export async function isPlanesModuleEnabled() {
+  return process.env.PLANES_MODULE_ENABLED === "true";
+}
+
+export async function requirePlanesModulePaid() {
+  await requirePlanesEnabled();
+  if (!(await isPlanesModuleEnabled())) {
+    redirect("/planes");
   }
 }
 
