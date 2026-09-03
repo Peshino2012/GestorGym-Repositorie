@@ -38,7 +38,20 @@ export async function requireHorariosEnabled() {
   }
 }
 
+// Multi-plan management is a paid upsell, not something a gym self-serves —
+// gated by an env var only we set (per Vercel project), so it's out of
+// reach of the gym's own Configuración. Every gym still gets exactly one
+// base Plan from onboarding (see seed-onboarding.ts) whether or not this
+// is on; this only decides whether they can manage MORE than that one.
+export async function isPlanesModuleEnabled() {
+  return process.env.PLANES_MODULE_ENABLED === "true";
+}
+
 export async function requirePlanesEnabled() {
+  if (!(await isPlanesModuleEnabled())) {
+    redirect("/dashboard");
+  }
+
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
   if (!session?.user?.id) redirect("/dashboard");
