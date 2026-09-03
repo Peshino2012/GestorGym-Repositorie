@@ -40,6 +40,7 @@ export default function Sidebar({
   canAccessHorarios = true,
   canAccessPlanes = true,
   canAccessCheckin = true,
+  planesModuleEnabled = true,
   open = false,
   onClose,
 }: {
@@ -48,11 +49,15 @@ export default function Sidebar({
   canAccessHorarios?: boolean;
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
+  planesModuleEnabled?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
   const items = NAV.filter((item) => {
+    // Unlike the other requires-checks, this one applies to the owner too —
+    // multi-plan management is a paid upsell, not a staff permission.
+    if (item.href === "/planes" && !planesModuleEnabled) return false;
     if (item.ownerOnly && role !== "OWNER") return false;
     if (role === "OWNER") return true;
     if (item.requires === "classes" && !canAccessClasses) return false;

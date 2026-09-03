@@ -19,6 +19,7 @@ Crear un proyecto Vercel **nuevo** conectado al repo de GitHub (`GestorGym-Repos
 | `DATABASE_URL` | connection string de la base Neon del paso 1 |
 | `AUTH_SECRET` | generar uno nuevo (`openssl rand -base64 32` o similar) — **nunca reusar el de otro cliente** |
 | `BLOB_READ_WRITE_TOKEN` | token del Vercel Blob store de este proyecto (fotos de socios, logo del gimnasio) — no es obligatorio para arrancar, solo para poder subir fotos |
+| `PLANES_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Planes (ver sección 6) |
 
 ## 3. Dos ajustes que Vercel no pone bien solo
 
@@ -41,18 +42,25 @@ ONBOARD_GYM_ADDRESS="Dirección (opcional)" \
 ONBOARD_OWNER_NAME="Nombre del dueño" \
 ONBOARD_OWNER_EMAIL="email@delcliente.com" \
 ONBOARD_OWNER_PASSWORD="contraseña-temporal-de-al-menos-6-caracteres" \
+ONBOARD_PLAN_PRICE="15000" \
+ONBOARD_PLAN_NAME="Cuota mensual (opcional, este es el default)" \
+ONBOARD_PLAN_BILLING_CYCLE="MONTHLY (opcional — MONTHLY, QUARTERLY o ANNUAL)" \
 npm run seed:onboarding
 ```
 
-Este script (`prisma/seed-onboarding.ts`) — a diferencia de `seed.ts`, que es solo para desarrollo y llena la base con datos de prueba falsos — no borra nada y no crea nada de prueba: solo la fila de configuración del gimnasio y el usuario dueño. Si la base ya tiene un gimnasio configurado, el script se niega a correr (para no pisar datos reales por error).
+Este script (`prisma/seed-onboarding.ts`) — a diferencia de `seed.ts`, que es solo para desarrollo y llena la base con datos de prueba falsos — no borra nada y no crea nada de prueba: solo la fila de configuración del gimnasio, el usuario dueño, y un **plan base** con el precio que le pase el cliente. Si la base ya tiene un gimnasio configurado, el script se niega a correr (para no pisar datos reales por error).
 
-Antes de que el dueño pueda cargar socios, alguien tiene que crear al menos un **Plan** desde el panel (Planes → Nuevo plan) — el alta de un socio requiere elegir uno.
+## 6. El módulo de Planes es un upsell pago
 
-## 6. Dominio propio (opcional)
+Por defecto, un gimnasio nuevo arranca con **un solo plan** (el que creó el script de alta) y sin acceso a la sección "Planes" del panel — ni siquiera el dueño la ve en el menú. Alcanza para usar el gestor normalmente (altas de socios, cobros, etc.), pero no se pueden crear planes adicionales.
+
+Si el cliente quiere manejar varios planes (básico/full/anual, por ejemplo), hay que cobrarle aparte y cargar `PLANES_MODULE_ENABLED="true"` en las variables de entorno de su proyecto GestorGym (paso 2) y volver a desplegar. Esto no lo puede activar el cliente por su cuenta — no hay ningún botón para eso en su panel, a propósito.
+
+## 7. Dominio propio (opcional)
 
 Conectar el dominio del cliente en el proyecto de Vercel, si lo tiene.
 
-## 7. Avisar al cliente
+## 8. Avisar al cliente
 
 Pasarle la URL de su panel (`https://<proyecto>.vercel.app` o su dominio propio) y su email. Como el usuario se crea con `mustChangePassword: true`, en el primer login el sistema le va a pedir elegir su propia contraseña — la temporal del paso 5 es de un solo uso.
 
