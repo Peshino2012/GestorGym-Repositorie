@@ -15,9 +15,6 @@ export async function updateGymSettings(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const logo = formData.get("logo");
   const checkinEnabled = formData.get("checkinEnabled") === "on";
-  const classesEnabled = formData.get("classesEnabled") === "on";
-  const horariosEnabled = formData.get("horariosEnabled") === "on";
-  const planesEnabled = formData.get("planesEnabled") === "on";
 
   let logoUrl: string | undefined;
   if (logo instanceof File && logo.size > 0) {
@@ -35,9 +32,6 @@ export async function updateGymSettings(formData: FormData) {
       email,
       logoUrl,
       checkinEnabled,
-      classesEnabled,
-      horariosEnabled,
-      planesEnabled,
     },
     update: {
       name,
@@ -45,9 +39,6 @@ export async function updateGymSettings(formData: FormData) {
       phone,
       email,
       checkinEnabled,
-      classesEnabled,
-      horariosEnabled,
-      planesEnabled,
       ...(logoUrl ? { logoUrl } : {}),
     },
   });

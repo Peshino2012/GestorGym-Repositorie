@@ -19,26 +19,31 @@ export default async function AppLayout({
   let canAccessClasses = true;
   let canAccessHorarios = true;
   let canAccessPlanes = true;
+  let canAccessCheckin = true;
 
   if (session?.user?.role === "STAFF" && session.user.id) {
     const permissions = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { canAccessClasses: true, canAccessHorarios: true, canAccessPlanes: true },
+      select: {
+        canAccessClasses: true,
+        canAccessHorarios: true,
+        canAccessPlanes: true,
+        canAccessCheckin: true,
+      },
     });
     canAccessClasses = permissions?.canAccessClasses ?? true;
     canAccessHorarios = permissions?.canAccessHorarios ?? true;
     canAccessPlanes = permissions?.canAccessPlanes ?? true;
+    canAccessCheckin = permissions?.canAccessCheckin ?? true;
   }
 
   return (
     <AppShell
       role={session?.user?.role}
-      classesEnabled={gym.classesEnabled}
-      horariosEnabled={gym.horariosEnabled}
-      planesEnabled={gym.planesEnabled}
       canAccessClasses={canAccessClasses}
       canAccessHorarios={canAccessHorarios}
       canAccessPlanes={canAccessPlanes}
+      canAccessCheckin={canAccessCheckin}
       userName={session?.user?.name}
       gymLabel={gymLabel}
       logoutAction={logoutAction}

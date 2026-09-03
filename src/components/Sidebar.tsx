@@ -16,11 +16,13 @@ import {
   Settings,
   Zap,
   X,
+  IdCard,
 } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, ownerOnly: false, requires: null },
   { href: "/socios", label: "Socios", icon: Users, ownerOnly: false, requires: null },
+  { href: "/ingresos", label: "Registro", icon: IdCard, ownerOnly: false, requires: "checkin" as const },
   { href: "/cobros", label: "Cobros", icon: CreditCard, ownerOnly: false, requires: null },
   { href: "/riesgo", label: "Riesgo", icon: AlertTriangle, ownerOnly: false, requires: null },
   { href: "/clases", label: "Clases", icon: CalendarDays, ownerOnly: false, requires: "classes" as const },
@@ -34,22 +36,18 @@ const NAV = [
 
 export default function Sidebar({
   role,
-  classesEnabled = false,
-  horariosEnabled = false,
-  planesEnabled = true,
   canAccessClasses = true,
   canAccessHorarios = true,
   canAccessPlanes = true,
+  canAccessCheckin = true,
   open = false,
   onClose,
 }: {
   role?: "OWNER" | "STAFF";
-  classesEnabled?: boolean;
-  horariosEnabled?: boolean;
-  planesEnabled?: boolean;
   canAccessClasses?: boolean;
   canAccessHorarios?: boolean;
   canAccessPlanes?: boolean;
+  canAccessCheckin?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -57,9 +55,10 @@ export default function Sidebar({
   const items = NAV.filter((item) => {
     if (item.ownerOnly && role !== "OWNER") return false;
     if (role === "OWNER") return true;
-    if (item.requires === "classes" && !(classesEnabled && canAccessClasses)) return false;
-    if (item.requires === "horarios" && !(horariosEnabled && canAccessHorarios)) return false;
-    if (item.requires === "planes" && !(planesEnabled && canAccessPlanes)) return false;
+    if (item.requires === "classes" && !canAccessClasses) return false;
+    if (item.requires === "horarios" && !canAccessHorarios) return false;
+    if (item.requires === "planes" && !canAccessPlanes) return false;
+    if (item.requires === "checkin" && !canAccessCheckin) return false;
     return true;
   });
 

@@ -6,24 +6,20 @@ import Sidebar from "./Sidebar";
 
 export default function AppShell({
   role,
-  classesEnabled,
-  horariosEnabled,
-  planesEnabled,
   canAccessClasses,
   canAccessHorarios,
   canAccessPlanes,
+  canAccessCheckin,
   userName,
   gymLabel,
   logoutAction,
   children,
 }: {
   role?: "OWNER" | "STAFF";
-  classesEnabled?: boolean;
-  horariosEnabled?: boolean;
-  planesEnabled?: boolean;
   canAccessClasses?: boolean;
   canAccessHorarios?: boolean;
   canAccessPlanes?: boolean;
+  canAccessCheckin?: boolean;
   userName?: string | null;
   gymLabel?: string;
   logoutAction: () => void;
@@ -43,12 +39,10 @@ export default function AppShell({
 
       <Sidebar
         role={role}
-        classesEnabled={classesEnabled}
-        horariosEnabled={horariosEnabled}
-        planesEnabled={planesEnabled}
         canAccessClasses={canAccessClasses}
         canAccessHorarios={canAccessHorarios}
         canAccessPlanes={canAccessPlanes}
+        canAccessCheckin={canAccessCheckin}
         open={open}
         onClose={() => setOpen(false)}
       />

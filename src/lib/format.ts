@@ -14,6 +14,13 @@ export function formatDate(date: Date) {
   }).format(date);
 }
 
+export function formatTime(date: Date) {
+  return new Intl.DateTimeFormat("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 // `new Date("2026-09-01")` parses as UTC midnight, which then displays as
 // 31/08 in any timezone behind UTC (e.g. Argentina) — a day off from what
 // the gestor actually typed into a <input type="date">. Parsing the parts
