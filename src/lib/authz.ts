@@ -38,12 +38,12 @@ export async function requireHorariosEnabled() {
   }
 }
 
-// The /planes page itself is always reachable by anyone with the Planes
-// permission — every gym has at least one base Plan (created at onboarding)
-// that they need to be able to see and edit regardless of what they've
-// paid for. What's gated is having MORE than that one plan (see
-// requirePlanesModulePaid below) — the page renders a simple one-plan
-// editor instead of full multi-plan management when that's off.
+// Gates "/plan" (the always-free single-plan editor, see
+// src/app/(app)/plan/) and the update/create actions both "/plan" and
+// "/planes" share — per-user permission only, same shape as
+// Clases/Horarios. Deliberately has no module-paid check: every gym needs
+// to be able to see and edit its one base plan no matter what they've
+// paid for.
 export async function requirePlanesEnabled() {
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
@@ -60,31 +60,35 @@ export async function requirePlanesEnabled() {
 
 // Multi-plan management is a paid upsell, not something a gym self-serves —
 // gated by an env var only we set (per Vercel project), so it's out of
-// reach of the gym's own Configuración. Used only by the actions that only
-// make sense with more than one plan (create/delete/feature/toggle) —
-// editing the existing plan(s) stays available either way.
+// reach of the gym's own Configuración.
 export async function isPlanesModuleEnabled() {
   return process.env.PLANES_MODULE_ENABLED === "true";
 }
 
-export async function requirePlanesModulePaid() {
+// Gates "/planes" itself (the full multi-plan management page — a
+// completely separate route from "/plan") and the actions that only make
+// sense with more than one plan (create a 2nd+, delete, feature, toggle).
+// `redirectTo` differs by caller: the page guard sends an unpaid gym to
+// "/plan" (their free equivalent) to avoid redirecting back into itself;
+// actions default to "/planes" since that's where their form already is.
+export async function requirePlanesModulePaid(redirectTo: string = "/planes") {
   await requirePlanesEnabled();
   if (!(await isPlanesModuleEnabled())) {
-    redirect("/planes");
+    redirect(redirectTo);
   }
 }
 
 // createPlan is the one exception: a gym with zero plans can't function at
 // all (socios need one to be created), so the very first plan is free even
 // on an unpaid gym — this is what onboarding creates automatically, but a
-// gym that somehow has none yet still needs a way to make one. Only a
-// SECOND plan requires the paid module.
+// gym that somehow has none yet still needs a way to make one via "/plan".
+// Only a SECOND plan (via "/planes") requires the paid module.
 export async function requireCanCreatePlan() {
   await requirePlanesEnabled();
   if (await isPlanesModuleEnabled()) return;
   const planCount = await db.plan.count();
   if (planCount > 0) {
-    redirect("/planes");
+    redirect("/plan");
   }
 }
 
