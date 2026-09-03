@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requirePlanesEnabled, requirePlanesModulePaid } from "@/lib/authz";
+import { requirePlanesEnabled, requirePlanesModulePaid, requireCanCreatePlan } from "@/lib/authz";
 import { notifyPublicSite } from "@/lib/notifyPublicSite";
 import type { BillingCycle } from "@/generated/prisma/client";
 
@@ -20,7 +20,7 @@ function parsePlanForm(formData: FormData) {
 }
 
 export async function createPlan(formData: FormData) {
-  await requirePlanesModulePaid();
+  await requireCanCreatePlan();
   const data = parsePlanForm(formData);
 
   await db.plan.create({ data });
