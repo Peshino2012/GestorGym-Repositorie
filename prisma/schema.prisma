@@ -20,6 +20,7 @@ model User {
   canAccessClasses   Boolean  @default(true)
   canAccessHorarios  Boolean  @default(true)
   canAccessPlanes    Boolean  @default(true)
+  canAccessCheckin   Boolean  @default(true)
 }
 
 enum Role {
