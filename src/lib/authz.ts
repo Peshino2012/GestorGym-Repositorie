@@ -74,6 +74,20 @@ export async function requirePlanesModulePaid() {
   }
 }
 
+// createPlan is the one exception: a gym with zero plans can't function at
+// all (socios need one to be created), so the very first plan is free even
+// on an unpaid gym — this is what onboarding creates automatically, but a
+// gym that somehow has none yet still needs a way to make one. Only a
+// SECOND plan requires the paid module.
+export async function requireCanCreatePlan() {
+  await requirePlanesEnabled();
+  if (await isPlanesModuleEnabled()) return;
+  const planCount = await db.plan.count();
+  if (planCount > 0) {
+    redirect("/planes");
+  }
+}
+
 export async function requireCheckinAccess() {
   const session = await auth();
   if (session?.user?.role === "OWNER") return;

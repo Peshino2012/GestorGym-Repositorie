@@ -25,7 +25,9 @@ export default async function PlanesPage() {
   ]);
 
   if (!moduleEnabled) {
-    return <BasePlanEditor plan={plans[0] ?? null} action={updatePlan} />;
+    return (
+      <BasePlanEditor plan={plans[0] ?? null} updateAction={updatePlan} createAction={createPlan} />
+    );
   }
 
   return (
