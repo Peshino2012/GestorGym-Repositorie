@@ -58,10 +58,13 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const items = NAV.filter((item) => {
-    // "/plan" (free, single base plan) and "/planes" (paid, multi-plan) are
-    // mutually exclusive — exactly one shows, based on what's paid for.
-    // This check applies even to the owner, unlike the requires-checks
-    // below (those are staff permissions; this is a billing tier).
+    // "/plan" and "/planes" are mutually exclusive in the nav — "/planes"
+    // (the paid module) wins whenever it's on, regardless of the "/plan"
+    // permission; "/plan" only shows once the gym has no paid module.
+    // Either way the underlying data is the same Plan row(s), so nothing
+    // is lost switching between the two — this applies even to the owner,
+    // unlike the requires-checks below (those are staff permissions, not
+    // a billing tier).
     if (item.href === "/plan" && planesModuleEnabled) return false;
     if (item.href === "/planes" && !planesModuleEnabled) return false;
     if (item.ownerOnly && role !== "OWNER") return false;
