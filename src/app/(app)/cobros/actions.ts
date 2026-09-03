@@ -117,14 +117,33 @@ export async function createPayment(formData: FormData) {
     throw new Error("Ese socio ya tiene un cobro pendiente o vencido registrado.");
   }
 
+  const roundedAmount = Math.round(amount);
+
   try {
+    // Registering a cobro here means the socio paid on the spot — nobody
+    // gets logged as owing money they already handed over. So this creates
+    // the paid record for today plus the next cycle's cobro (due on the
+    // entered "vencimiento"), same as markPaid does for a renewal — that
+    // next cobro is what later falls into Pendiente/Vencido on its own.
+    const paid = await db.payment.create({
+      data: {
+        memberId,
+        planId,
+        amount: roundedAmount,
+        dueDate: new Date(),
+        paidAt: new Date(),
+        status: "PAID",
+      },
+    });
+
     await db.payment.create({
       data: {
         memberId,
         planId,
-        amount: Math.round(amount),
+        amount: roundedAmount,
         dueDate: parseDateInput(dueDate),
         status: "PENDING",
+        renewedFromId: paid.id,
       },
     });
   } catch (err) {
@@ -134,7 +153,10 @@ export async function createPayment(formData: FormData) {
     throw err;
   }
 
+  await db.member.update({ where: { id: memberId }, data: { status: "ACTIVE" } });
+
   revalidatePath("/cobros");
+  revalidatePath("/dashboard");
   revalidatePath(`/socios/${memberId}`);
 }
 
