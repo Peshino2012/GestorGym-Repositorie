@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { TriangleAlert } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { computeNextDueDate } from "@/lib/billing";
+import { displayPaymentStatus } from "@/lib/paymentStatus";
 import MemberCombobox from "@/components/MemberCombobox";
 import StatusBadge from "@/components/StatusBadge";
 import { getMemberPaymentHistory } from "./actions";
@@ -105,7 +106,7 @@ export default function NewPaymentForm({
                         : `Vence ${formatDate(h.dueDate)}`}
                     </span>
                     <span className="font-medium">{formatCurrency(h.amount)}</span>
-                    <StatusBadge status={h.status} />
+                    <StatusBadge status={displayPaymentStatus(h)} />
                   </li>
                 ))}
               </ul>

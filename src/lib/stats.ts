@@ -51,14 +51,23 @@ export async function getRevenueLast6Months() {
 }
 
 export async function getPaymentStatusBreakdown() {
-  const [paid, pending, overdue] = await Promise.all([
+  // A PENDING payment isn't actually "Pendiente" until its due date
+  // arrives — before that it's just the next scheduled cobro (same "Al
+  // día" the Cobros page already uses), so it needs its own slice instead
+  // of inflating the Pendiente count for something not due for weeks.
+  const [paid, overdue, pendingDueDates] = await Promise.all([
     db.payment.count({ where: { status: "PAID" } }),
-    db.payment.count({ where: { status: "PENDING" } }),
     db.payment.count({ where: { status: "OVERDUE" } }),
+    db.payment.findMany({ where: { status: "PENDING" }, select: { dueDate: true } }),
   ]);
+
+  const now = new Date();
+  const pending = pendingDueDates.filter((p) => p.dueDate <= now).length;
+  const scheduled = pendingDueDates.length - pending;
 
   return [
     { name: "Pagado", value: paid, color: CHART_COLORS.success },
+    { name: "Al día", value: scheduled, color: CHART_COLORS.muted },
     { name: "Pendiente", value: pending, color: CHART_COLORS.warning },
     { name: "Vencido", value: overdue, color: CHART_COLORS.danger },
   ];
