@@ -57,22 +57,25 @@ export default function Sidebar({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
+
+  // "/plan" and "/planes" are mutually exclusive per viewer, not per gym —
+  // "/planes" (the paid module) wins for THIS user only if the gym has it
+  // AND they personally have that permission; "/plan" is the fallback
+  // whenever either of those isn't true, as long as they have the "/plan"
+  // permission. Same underlying Plan row(s) either way, so nothing is lost
+  // switching between them.
+  const hasPlanesAccess = role === "OWNER" || canAccessPlanes;
+  const showPlanes = planesModuleEnabled && hasPlanesAccess;
+  const hasPlanAccess = role === "OWNER" || canAccessPlan;
+  const showPlan = !showPlanes && hasPlanAccess;
+
   const items = NAV.filter((item) => {
-    // "/plan" and "/planes" are mutually exclusive in the nav — "/planes"
-    // (the paid module) wins whenever it's on, regardless of the "/plan"
-    // permission; "/plan" only shows once the gym has no paid module.
-    // Either way the underlying data is the same Plan row(s), so nothing
-    // is lost switching between the two — this applies even to the owner,
-    // unlike the requires-checks below (those are staff permissions, not
-    // a billing tier).
-    if (item.href === "/plan" && planesModuleEnabled) return false;
-    if (item.href === "/planes" && !planesModuleEnabled) return false;
+    if (item.href === "/plan") return showPlan;
+    if (item.href === "/planes") return showPlanes;
     if (item.ownerOnly && role !== "OWNER") return false;
     if (role === "OWNER") return true;
     if (item.requires === "classes" && !canAccessClasses) return false;
     if (item.requires === "horarios" && !canAccessHorarios) return false;
-    if (item.requires === "plan" && !canAccessPlan) return false;
-    if (item.requires === "planes" && !canAccessPlanes) return false;
     if (item.requires === "checkin" && !canAccessCheckin) return false;
     return true;
   });
