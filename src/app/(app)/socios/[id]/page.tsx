@@ -4,6 +4,7 @@ import { Mail, Phone, CalendarPlus, IdCard, ShieldAlert, Pencil, Archive } from 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { displayPaymentStatus } from "@/lib/paymentStatus";
 import StatusBadge from "@/components/StatusBadge";
 import Avatar from "@/components/Avatar";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
@@ -114,7 +115,7 @@ export default async function SocioDetailPage({
                   <p className="text-xs text-muted-foreground">Vence {formatDate(p.dueDate)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={p.status} />
+                  <StatusBadge status={displayPaymentStatus(p)} />
                   {p.status === "PAID" && (
                     <form action={undoMarkPaid.bind(null, p.id)}>
                       <button
