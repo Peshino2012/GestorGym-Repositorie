@@ -38,11 +38,11 @@ async function main() {
   await db.galleryPhoto.deleteMany();
 
   console.log("Creando usuario demo...");
-  const passwordHash = await bcrypt.hash("pulso2024", 10);
+  const passwordHash = await bcrypt.hash("demo2024", 10);
   await db.user.create({
     data: {
-      name: "Admin PULSO",
-      email: "admin@pulsogym.com",
+      name: "Admin Demo",
+      email: "admin@migimnasio.com",
       passwordHash,
       role: "OWNER",
     },
@@ -52,7 +52,7 @@ async function main() {
   await db.gymSettings.create({
     data: {
       id: "main",
-      name: "PULSO Gym",
+      name: "Mi Gimnasio",
       address: "Av. Nazca 1234, Villa Devoto, CABA",
       phone: "+54 11 0000-0000",
     },
@@ -275,7 +275,7 @@ async function main() {
       data: {
         memberId: m.member.id,
         type: "RETENTION_ALERT",
-        content: `Hola ${m.member.name.split(" ")[0]}, te extrañamos en PULSO 💪 ¿Todo bien? Contanos si podemos ayudarte a volver a la rutina.`,
+        content: `Hola ${m.member.name.split(" ")[0]}, te extrañamos en Mi Gimnasio 💪 ¿Todo bien? Contanos si podemos ayudarte a volver a la rutina.`,
         sentAt: subDays(now, 12),
       },
     });

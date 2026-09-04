@@ -2,7 +2,7 @@
 
 Checklist para dar de alta un cliente nuevo de GestorGym. Un solo código fuente sirve a todos los clientes — no se clona ni se forkea el repo. Cada cliente es un **deploy independiente** (su propia base de datos, su propio proyecto de Vercel), conectado al mismo repo de GitHub. Un push a `master`/`vercel` actualiza a todos los clientes a la vez.
 
-Por defecto se da de alta **solo el panel (GestorGym)**. La web pública (PULSO) es opcional — armarla solo si el cliente la pide explícitamente (ver el apéndice al final).
+Por defecto se da de alta **solo el panel (GestorGym)**. La web pública es opcional — armarla solo si el cliente la pide explícitamente (ver el apéndice al final).
 
 Probado de punta a punta el 02/09/2026 con un gimnasio de prueba real (Neon + Vercel), incluyendo los dos problemas de configuración que no son obvios y están marcados abajo.
 
@@ -20,6 +20,9 @@ Crear un proyecto Vercel **nuevo** conectado al repo de GitHub (`GestorGym-Repos
 | `AUTH_SECRET` | generar uno nuevo (`openssl rand -base64 32` o similar) — **nunca reusar el de otro cliente** |
 | `BLOB_READ_WRITE_TOKEN` | token del Vercel Blob store de este proyecto (fotos de socios, logo del gimnasio) — no es obligatorio para arrancar, solo para poder subir fotos |
 | `PLANES_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Planes (ver sección 6) |
+| `CLASES_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Clases |
+| `HORARIOS_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Horarios |
+| `PUBLIC_SITE_URL` | solo si este cliente también tiene la web pública (apéndice) — su URL |
 
 ## 3. Dos ajustes que Vercel no pone bien solo
 
@@ -50,11 +53,11 @@ npm run seed:onboarding
 
 Este script (`prisma/seed-onboarding.ts`) — a diferencia de `seed.ts`, que es solo para desarrollo y llena la base con datos de prueba falsos — no borra nada y no crea nada de prueba: solo la fila de configuración del gimnasio, el usuario dueño, y un **plan base** con el precio que le pase el cliente. Si la base ya tiene un gimnasio configurado, el script se niega a correr (para no pisar datos reales por error).
 
-## 6. El módulo de Planes es un upsell pago
+## 6. Clases, Horarios y Planes son upsells pagos
 
-Por defecto, un gimnasio nuevo arranca con **un solo plan** (el que creó el script de alta) y sin acceso a la sección "Planes" del panel — ni siquiera el dueño la ve en el menú. Alcanza para usar el gestor normalmente (altas de socios, cobros, etc.), pero no se pueden crear planes adicionales.
+Por defecto, un gimnasio nuevo arranca **sin acceso a Clases, Horarios ni Planes** — ni siquiera el dueño los ve en el menú. Alcanza para usar el gestor normalmente (altas de socios, cobros, un solo plan base, etc.), pero no se pueden crear planes adicionales ni usar esos otros dos módulos.
 
-Si el cliente quiere manejar varios planes (básico/full/anual, por ejemplo), hay que cobrarle aparte y cargar `PLANES_MODULE_ENABLED="true"` en las variables de entorno de su proyecto GestorGym (paso 2) y volver a desplegar. Esto no lo puede activar el cliente por su cuenta — no hay ningún botón para eso en su panel, a propósito.
+Para habilitarle alguno a un cliente que pagó ese módulo, usar el panel de admin (`gestor-admin-panel`, separado de este) — ahí se prende/apaga por gimnasio con un click y redespliega solo. Si por algún motivo hay que hacerlo a mano: cargar `PLANES_MODULE_ENABLED` / `CLASES_MODULE_ENABLED` / `HORARIOS_MODULE_ENABLED` en `"true"` en las variables de entorno de su proyecto GestorGym (paso 2) y volver a desplegar. Esto no lo puede activar el cliente por su cuenta — no hay ningún botón para eso en su panel, a propósito.
 
 ## 7. Dominio propio (opcional)
 
@@ -66,7 +69,7 @@ Pasarle la URL de su panel (`https://<proyecto>.vercel.app` o su dominio propio)
 
 ---
 
-## Apéndice — Web pública (PULSO), solo si el cliente la pide
+## Apéndice — Web pública, solo si el cliente la pide
 
 Repetir el mismo patrón con el otro repo (`gym-repositorie`), rama `main`:
 
@@ -74,5 +77,7 @@ Repetir el mismo patrón con el otro repo (`gym-repositorie`), rama `main`:
 |---|---|
 | `GESTOR_API_URL` | URL pública del proyecto GestorGym de este cliente |
 | `REVALIDATE_SECRET` | generar uno nuevo, y cargar el mismo valor también en el proyecto GestorGym (variable `REVALIDATE_SECRET`) |
+
+Y en el proyecto GestorGym de este mismo cliente, agregar `PUBLIC_SITE_URL` con la URL de esta web pública (ver tabla del paso 2) — sin esto, los cambios desde el panel (nuevo plan, nueva clase, etc.) tardan hasta 15s en verse reflejados en el sitio en vez de al instante.
 
 Aplican los mismos dos ajustes del paso 3 (Framework Preset → Next.js, Vercel Authentication → Disabled).

@@ -166,7 +166,7 @@ enum MessageType {
 
 model GymSettings {
   id              String  @id @default("main")
-  name            String  @default("PULSO Gym")
+  name            String  @default("Mi Gimnasio")
   address         String?
   phone           String?
   email           String?

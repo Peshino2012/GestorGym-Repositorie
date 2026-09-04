@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { getPaymentStatusBreakdown } from "@/lib/stats";
 import { paymentReminderMessage } from "@/lib/messages";
 import { syncOverduePayments } from "@/lib/paymentSync";
+import { getGymSettings } from "@/lib/gymSettings";
 import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import PendingSubmitButton from "@/components/PendingSubmitButton";
@@ -36,7 +37,7 @@ export default async function CobrosPage({
   const markPaidCutoff = addDays(new Date(), MARK_PAID_WINDOW_DAYS);
   const isFiltered = Boolean(memberId || status);
 
-  const [payments, recentMessages, statusBreakdown, members, plans, activePayments] = await Promise.all([
+  const [payments, recentMessages, statusBreakdown, members, plans, activePayments, gym] = await Promise.all([
     db.payment.findMany({
       where: {
         ...(memberId ? { memberId } : {}),
@@ -62,6 +63,7 @@ export default async function CobrosPage({
       where: { status: { in: ["PENDING", "OVERDUE"] } },
       select: { memberId: true },
     }),
+    getGymSettings(),
   ]);
 
   const membersWithActivePayment = [...new Set(activePayments.map((p) => p.memberId))];
@@ -150,17 +152,17 @@ export default async function CobrosPage({
                   tone="danger"
                   defaultOpen
                 >
-                  <CobrosTable payments={vencidos} markPaidCutoff={markPaidCutoff} />
+                  <CobrosTable payments={vencidos} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
                 </CobrosSection>
               )}
               {porVencer.length > 0 && (
                 <CobrosSection title="Por vencer pronto" count={porVencer.length} tone="warning" defaultOpen>
-                  <CobrosTable payments={porVencer} markPaidCutoff={markPaidCutoff} />
+                  <CobrosTable payments={porVencer} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
                 </CobrosSection>
               )}
               {alDia.length > 0 && (
                 <CobrosSection title="Al día" count={alDia.length} tone="muted">
-                  <CobrosTable payments={alDia} markPaidCutoff={markPaidCutoff} />
+                  <CobrosTable payments={alDia} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
                 </CobrosSection>
               )}
               {historial.length > 0 && (
@@ -171,7 +173,7 @@ export default async function CobrosPage({
                   viewAllHref={!isFiltered && historialAll.length > historial.length ? "/cobros?status=PAID" : undefined}
                   tone="muted"
                 >
-                  <CobrosTable payments={historial} markPaidCutoff={markPaidCutoff} />
+                  <CobrosTable payments={historial} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
                 </CobrosSection>
               )}
             </>
@@ -285,9 +287,11 @@ function CobrosSection({
 function CobrosTable({
   payments,
   markPaidCutoff,
+  gymName,
 }: {
   payments: PaymentWithMember[];
   markPaidCutoff: Date;
+  gymName: string;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -347,7 +351,7 @@ function CobrosTable({
                       <form action={sendPaymentReminder.bind(null, p.id)}>
                         <WhatsAppButton
                           phone={p.member.phone}
-                          message={paymentReminderMessage(p.member.name, p.amount, p.dueDate)}
+                          message={paymentReminderMessage(p.member.name, p.amount, p.dueDate, gymName)}
                           className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] sm:px-3"
                         >
                           <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
