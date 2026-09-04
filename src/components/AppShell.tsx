@@ -12,6 +12,8 @@ export default function AppShell({
   canAccessPlanes,
   canAccessCheckin,
   planesModuleEnabled,
+  classesModuleEnabled,
+  horariosModuleEnabled,
   userName,
   gymLabel,
   logoutAction,
@@ -24,6 +26,8 @@ export default function AppShell({
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
   planesModuleEnabled?: boolean;
+  classesModuleEnabled?: boolean;
+  horariosModuleEnabled?: boolean;
   userName?: string | null;
   gymLabel?: string;
   logoutAction: () => void;
@@ -49,6 +53,8 @@ export default function AppShell({
         canAccessPlanes={canAccessPlanes}
         canAccessCheckin={canAccessCheckin}
         planesModuleEnabled={planesModuleEnabled}
+        classesModuleEnabled={classesModuleEnabled}
+        horariosModuleEnabled={horariosModuleEnabled}
         open={open}
         onClose={() => setOpen(false)}
       />

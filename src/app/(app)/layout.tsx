@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import AppShell from "@/components/AppShell";
 import { db } from "@/lib/db";
 import { getGymSettings } from "@/lib/gymSettings";
-import { isPlanesModuleEnabled } from "@/lib/authz";
+import { isPlanesModuleEnabled, isClasesModuleEnabled, isHorariosModuleEnabled } from "@/lib/authz";
 
 async function logoutAction() {
   "use server";
@@ -14,10 +14,12 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [session, gym, planesModuleEnabled] = await Promise.all([
+  const [session, gym, planesModuleEnabled, classesModuleEnabled, horariosModuleEnabled] = await Promise.all([
     auth(),
     getGymSettings(),
     isPlanesModuleEnabled(),
+    isClasesModuleEnabled(),
+    isHorariosModuleEnabled(),
   ]);
   const gymLabel = [gym.name, gym.address].filter(Boolean).join(" · ");
 
@@ -54,6 +56,8 @@ export default async function AppLayout({
       canAccessPlanes={canAccessPlanes}
       canAccessCheckin={canAccessCheckin}
       planesModuleEnabled={planesModuleEnabled}
+      classesModuleEnabled={classesModuleEnabled}
+      horariosModuleEnabled={horariosModuleEnabled}
       userName={session?.user?.name}
       gymLabel={gymLabel}
       logoutAction={logoutAction}

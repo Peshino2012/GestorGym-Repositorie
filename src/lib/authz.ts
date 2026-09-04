@@ -10,7 +10,23 @@ export async function requireOwner() {
   return session;
 }
 
+// Clases and Horarios are paid upsells too, same idea as Planes below —
+// gated by an env var only we set per Vercel project, out of reach of the
+// gym's own Configuración. Unlike Planes there's no free fallback page: if
+// the gym hasn't paid for it, nobody sees it, owner included.
+export async function isClasesModuleEnabled() {
+  return process.env.CLASES_MODULE_ENABLED === "true";
+}
+
+export async function isHorariosModuleEnabled() {
+  return process.env.HORARIOS_MODULE_ENABLED === "true";
+}
+
 export async function requireClassesEnabled() {
+  if (!(await isClasesModuleEnabled())) {
+    redirect("/dashboard");
+  }
+
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
   if (!session?.user?.id) redirect("/dashboard");
@@ -25,6 +41,10 @@ export async function requireClassesEnabled() {
 }
 
 export async function requireHorariosEnabled() {
+  if (!(await isHorariosModuleEnabled())) {
+    redirect("/dashboard");
+  }
+
   const session = await auth();
   if (session?.user?.role === "OWNER") return;
   if (!session?.user?.id) redirect("/dashboard");
