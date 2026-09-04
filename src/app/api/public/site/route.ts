@@ -5,7 +5,7 @@ import { isClasesModuleEnabled, isHorariosModuleEnabled, isPlanesModuleEnabled }
 
 // Public, unauthenticated, read-only: only marketing-safe fields (no member
 // data, payments, or user accounts) — meant to be consumed by the gym's
-// public site (PULSO) to render live plans/trainers/gallery.
+// own public site to render live plans/trainers/gallery.
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
 

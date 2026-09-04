@@ -9,7 +9,7 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Gestor PULSO — Panel de administración",
+  title: "Gestor Cauccen — Panel de administración",
   description: "Panel de gestión para gimnasios: cobros, socios, clases y retención.",
 };
 

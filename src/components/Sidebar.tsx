@@ -99,7 +99,7 @@ export default function Sidebar({
       <div className="flex items-center justify-between px-6 py-6">
         <div className="flex items-center gap-1.5 text-lg font-bold tracking-tight">
           <Zap className="h-4 w-4 fill-primary text-primary" strokeWidth={0} />
-          PULSO <span className="font-normal text-sidebar-muted">gestor</span>
+          Cauccen <span className="font-normal text-sidebar-muted">gestor</span>
         </div>
         <button
           type="button"

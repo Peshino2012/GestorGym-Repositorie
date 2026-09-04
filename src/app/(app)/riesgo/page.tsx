@@ -3,11 +3,12 @@ import { computeAtRiskMembers } from "@/lib/retention";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { retentionAlertMessage } from "@/lib/messages";
+import { getGymSettings } from "@/lib/gymSettings";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { sendRetentionAlert, dismissRisk } from "./actions";
 
 export default async function RiesgoPage() {
-  const [atRisk, recentMessages] = await Promise.all([
+  const [atRisk, recentMessages, gym] = await Promise.all([
     computeAtRiskMembers(),
     db.messageLog.findMany({
       where: { type: "RETENTION_ALERT" },
@@ -15,6 +16,7 @@ export default async function RiesgoPage() {
       orderBy: { sentAt: "desc" },
       take: 8,
     }),
+    getGymSettings(),
   ]);
 
   return (
@@ -63,7 +65,7 @@ export default async function RiesgoPage() {
                       <form action={sendRetentionAlert.bind(null, m.id)}>
                         <WhatsAppButton
                           phone={m.phone}
-                          message={retentionAlertMessage(m.name)}
+                          message={retentionAlertMessage(m.name, gym.name)}
                           className="group flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.96] sm:px-3"
                         >
                           <MessageCircle className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />

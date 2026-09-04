@@ -88,7 +88,7 @@ export default async function CredencialPage({
       </div>
 
       <p className="max-w-2xl text-center text-xs text-muted-foreground print:hidden">
-        Generado por Gestor PULSO
+        Generado por Gestor Cauccen
       </p>
     </div>
   );

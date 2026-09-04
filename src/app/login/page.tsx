@@ -33,7 +33,7 @@ export default async function LoginPage({
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-1.5 text-xl font-bold tracking-tight">
             <Zap className="h-5 w-5 fill-primary text-primary" strokeWidth={0} />
-            PULSO <span className="font-normal text-muted-foreground">gestor</span>
+            Cauccen <span className="font-normal text-muted-foreground">gestor</span>
           </div>
           <p className="text-sm text-muted-foreground">
             Panel de administración para tu gimnasio

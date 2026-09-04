@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { paymentReminderMessage } from "@/lib/messages";
 import { computeNextDueDate } from "@/lib/billing";
 import { parseDateInput } from "@/lib/format";
+import { getGymSettings } from "@/lib/gymSettings";
 
 // Belt-and-suspenders for the application-level checks below: the database
 // itself has a unique index rejecting a second PENDING/OVERDUE payment for
@@ -86,7 +87,8 @@ export async function sendPaymentReminder(paymentId: string) {
     include: { member: true },
   });
 
-  const content = paymentReminderMessage(payment.member.name, payment.amount, payment.dueDate);
+  const gym = await getGymSettings();
+  const content = paymentReminderMessage(payment.member.name, payment.amount, payment.dueDate, gym.name);
 
   await db.messageLog.create({
     data: {
