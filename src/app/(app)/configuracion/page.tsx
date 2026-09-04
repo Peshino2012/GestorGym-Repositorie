@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { requireOwner } from "@/lib/authz";
+import { requireOwner, isClasesModuleEnabled, isHorariosModuleEnabled, isPlanesModuleEnabled } from "@/lib/authz";
 import { getGymSettings } from "@/lib/gymSettings";
 import { db } from "@/lib/db";
 import { updateGymSettings } from "./actions";
@@ -7,11 +7,13 @@ import { updateUserModuleAccess } from "../usuarios/actions";
 
 export default async function ConfiguracionPage() {
   await requireOwner();
-  const gym = await getGymSettings();
-  const staffUsers = await db.user.findMany({
-    where: { role: "STAFF" },
-    orderBy: { name: "asc" },
-  });
+  const [gym, staffUsers, classesModuleEnabled, horariosModuleEnabled, planesModuleEnabled] = await Promise.all([
+    getGymSettings(),
+    db.user.findMany({ where: { role: "STAFF" }, orderBy: { name: "asc" } }),
+    isClasesModuleEnabled(),
+    isHorariosModuleEnabled(),
+    isPlanesModuleEnabled(),
+  ]);
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
@@ -156,25 +158,31 @@ export default async function ConfiguracionPage() {
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
 
-              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-                <span className="text-sm font-medium">Clases</span>
-                <input
-                  type="checkbox"
-                  name="canAccessClasses"
-                  defaultChecked={user.canAccessClasses}
-                  className="h-5 w-9 shrink-0 accent-primary"
-                />
-              </label>
+              {classesModuleEnabled && (
+                <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                  <span className="text-sm font-medium">Clases</span>
+                  <input type="hidden" name="classesEditable" value="1" />
+                  <input
+                    type="checkbox"
+                    name="canAccessClasses"
+                    defaultChecked={user.canAccessClasses}
+                    className="h-5 w-9 shrink-0 accent-primary"
+                  />
+                </label>
+              )}
 
-              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-                <span className="text-sm font-medium">Horarios</span>
-                <input
-                  type="checkbox"
-                  name="canAccessHorarios"
-                  defaultChecked={user.canAccessHorarios}
-                  className="h-5 w-9 shrink-0 accent-primary"
-                />
-              </label>
+              {horariosModuleEnabled && (
+                <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                  <span className="text-sm font-medium">Horarios</span>
+                  <input type="hidden" name="horariosEditable" value="1" />
+                  <input
+                    type="checkbox"
+                    name="canAccessHorarios"
+                    defaultChecked={user.canAccessHorarios}
+                    className="h-5 w-9 shrink-0 accent-primary"
+                  />
+                </label>
+              )}
 
               <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
                 <span className="text-sm font-medium">Plan (cuota del gimnasio)</span>
@@ -186,15 +194,18 @@ export default async function ConfiguracionPage() {
                 />
               </label>
 
-              <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
-                <span className="text-sm font-medium">Planes (varios planes, función paga)</span>
-                <input
-                  type="checkbox"
-                  name="canAccessPlanes"
-                  defaultChecked={user.canAccessPlanes}
-                  className="h-5 w-9 shrink-0 accent-primary"
-                />
-              </label>
+              {planesModuleEnabled && (
+                <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
+                  <span className="text-sm font-medium">Planes (varios planes, función paga)</span>
+                  <input type="hidden" name="planesEditable" value="1" />
+                  <input
+                    type="checkbox"
+                    name="canAccessPlanes"
+                    defaultChecked={user.canAccessPlanes}
+                    className="h-5 w-9 shrink-0 accent-primary"
+                  />
+                </label>
+              )}
 
               <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3.5 py-3">
                 <span className="text-sm font-medium">Registro (check-in por DNI)</span>

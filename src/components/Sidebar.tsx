@@ -43,6 +43,8 @@ export default function Sidebar({
   canAccessPlanes = true,
   canAccessCheckin = true,
   planesModuleEnabled = false,
+  classesModuleEnabled = false,
+  horariosModuleEnabled = false,
   open = false,
   onClose,
 }: {
@@ -53,6 +55,8 @@ export default function Sidebar({
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
   planesModuleEnabled?: boolean;
+  classesModuleEnabled?: boolean;
+  horariosModuleEnabled?: boolean;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -69,13 +73,19 @@ export default function Sidebar({
   const hasPlanAccess = role === "OWNER" || canAccessPlan;
   const showPlan = !showPlanes && hasPlanAccess;
 
+  // Clases and Horarios are paid modules too — unlike Plan/Planes there's
+  // no free fallback, so the gym-level flag blocks everyone, owner
+  // included; the per-user permission only matters once the gym has it.
+  const showClasses = classesModuleEnabled && (role === "OWNER" || canAccessClasses);
+  const showHorarios = horariosModuleEnabled && (role === "OWNER" || canAccessHorarios);
+
   const items = NAV.filter((item) => {
+    if (item.href === "/clases") return showClasses;
+    if (item.href === "/horarios") return showHorarios;
     if (item.href === "/plan") return showPlan;
     if (item.href === "/planes") return showPlanes;
     if (item.ownerOnly && role !== "OWNER") return false;
     if (role === "OWNER") return true;
-    if (item.requires === "classes" && !canAccessClasses) return false;
-    if (item.requires === "horarios" && !canAccessHorarios) return false;
     if (item.requires === "checkin" && !canAccessCheckin) return false;
     return true;
   });

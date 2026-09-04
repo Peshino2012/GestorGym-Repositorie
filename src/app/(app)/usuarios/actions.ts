@@ -129,15 +129,22 @@ export async function deleteUser(id: string) {
 
 export async function updateUserModuleAccess(userId: string, formData: FormData) {
   await requireOwner();
-  await db.user.update({
-    where: { id: userId },
-    data: {
-      canAccessClasses: formData.get("canAccessClasses") === "on",
-      canAccessHorarios: formData.get("canAccessHorarios") === "on",
-      canAccessPlan: formData.get("canAccessPlan") === "on",
-      canAccessPlanes: formData.get("canAccessPlanes") === "on",
-      canAccessCheckin: formData.get("canAccessCheckin") === "on",
-    },
-  });
+
+  // Plan and Checkin are always editable — Clases/Horarios/Planes only
+  // render their checkbox (and this companion hidden field) when we've
+  // enabled that paid module for the gym. An unchecked visible checkbox
+  // is absent from formData same as a checkbox that was never rendered,
+  // so without the *Editable markers a disabled module would read as
+  // "unchecked" and silently wipe out the staffer's saved permission the
+  // next time the owner saves this form for any other field.
+  const data: Record<string, boolean> = {
+    canAccessPlan: formData.get("canAccessPlan") === "on",
+    canAccessCheckin: formData.get("canAccessCheckin") === "on",
+  };
+  if (formData.has("classesEditable")) data.canAccessClasses = formData.get("canAccessClasses") === "on";
+  if (formData.has("horariosEditable")) data.canAccessHorarios = formData.get("canAccessHorarios") === "on";
+  if (formData.has("planesEditable")) data.canAccessPlanes = formData.get("canAccessPlanes") === "on";
+
+  await db.user.update({ where: { id: userId }, data });
   revalidatePath("/configuracion");
 }

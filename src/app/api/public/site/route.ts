@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getGymSettings } from "@/lib/gymSettings";
+import { isClasesModuleEnabled, isHorariosModuleEnabled, isPlanesModuleEnabled } from "@/lib/authz";
 
 // Public, unauthenticated, read-only: only marketing-safe fields (no member
 // data, payments, or user accounts) — meant to be consumed by the gym's
@@ -8,21 +9,25 @@ import { getGymSettings } from "@/lib/gymSettings";
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
 
-  const [gym, plans, trainers, gallery, scheduleBlocks, classCards] = await Promise.all([
-    getGymSettings(),
-    db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" } }),
-    db.trainer.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } }),
-    db.galleryPhoto.findMany({ orderBy: { createdAt: "asc" } }),
-    db.scheduleBlock.findMany({
-      orderBy: { order: "asc" },
-      include: { entries: { orderBy: { order: "asc" } } },
-    }),
-    db.gymClass.findMany({
-      where: { showOnSite: true },
-      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
-      take: 6,
-    }),
-  ]);
+  const [gym, plans, trainers, gallery, scheduleBlocks, classCards, classesEnabled, horariosEnabled, planesEnabled] =
+    await Promise.all([
+      getGymSettings(),
+      db.plan.findMany({ where: { active: true }, orderBy: { price: "asc" } }),
+      db.trainer.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } }),
+      db.galleryPhoto.findMany({ orderBy: { createdAt: "asc" } }),
+      db.scheduleBlock.findMany({
+        orderBy: { order: "asc" },
+        include: { entries: { orderBy: { order: "asc" } } },
+      }),
+      db.gymClass.findMany({
+        where: { showOnSite: true },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+        take: 6,
+      }),
+      isClasesModuleEnabled(),
+      isHorariosModuleEnabled(),
+      isPlanesModuleEnabled(),
+    ]);
 
   // Blob storage returns absolute URLs already; local-disk uploads return
   // relative /uploads/... paths that need the request origin prefixed.
@@ -57,9 +62,9 @@ export async function GET(req: NextRequest) {
       url: toAbsolute(g.url),
       caption: g.caption,
     })),
-    classesEnabled: gym.classesEnabled,
-    horariosEnabled: gym.horariosEnabled,
-    planesEnabled: gym.planesEnabled,
+    classesEnabled,
+    horariosEnabled,
+    planesEnabled,
     scheduleBlocks: scheduleBlocks.map((b) => ({
       id: b.id,
       title: b.title,
