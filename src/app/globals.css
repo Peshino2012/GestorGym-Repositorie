@@ -7,8 +7,11 @@
   --muted-foreground: 240 4% 46%;
   --border: 240 6% 89%;
 
-  --primary: 6 100% 59%;
+  /* Brand blue/teal from the Cauccen logo (sampled from public/brand/icon.png) */
+  --primary: 199 91% 44%;
   --primary-foreground: 0 0% 100%;
+  --accent: 174 83% 41%;
+  --accent-foreground: 0 0% 100%;
 
   --success: 142 71% 40%;
   --success-bg: 142 71% 95%;
@@ -17,10 +20,10 @@
   --danger: 0 72% 51%;
   --danger-bg: 0 72% 96%;
 
-  --sidebar: 240 8% 12%;
+  --sidebar: 220 35% 11%;
   --sidebar-foreground: 0 0% 92%;
-  --sidebar-muted: 240 5% 65%;
-  --sidebar-border: 240 8% 20%;
+  --sidebar-muted: 220 15% 65%;
+  --sidebar-border: 220 30% 20%;
 }
 
 @theme inline {
@@ -32,6 +35,8 @@
 
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
 
   --color-success: hsl(var(--success));
   --color-success-bg: hsl(var(--success-bg));
