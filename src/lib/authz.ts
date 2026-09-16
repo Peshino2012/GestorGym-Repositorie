@@ -58,25 +58,6 @@ export async function requireHorariosEnabled() {
   }
 }
 
-// Gates "/plan" (the always-free single-plan editor, see
-// src/app/(app)/plan/) — its own permission, fully independent of Planes
-// (canAccessPlanes below). A gym's one base plan has nothing to do with
-// the paid multi-plan module, so access to it is a separate toggle in
-// Configuración, not a side effect of the Planes checkbox.
-export async function requirePlanAccess() {
-  const session = await auth();
-  if (session?.user?.role === "OWNER") return;
-  if (!session?.user?.id) redirect("/dashboard");
-
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { canAccessPlan: true },
-  });
-  if (!user?.canAccessPlan) {
-    redirect("/dashboard");
-  }
-}
-
 // Gates "/planes" (the full multi-plan management page) — per-user
 // permission only, same shape as Clases/Horarios. Independent of
 // canAccessPlan above.
@@ -95,20 +76,14 @@ export async function requirePlanesEnabled() {
 }
 
 // updatePlan/createPlan are shared by both "/plan" and "/planes" (same
-// underlying edit-a-plan-row logic either way), so they're reachable with
-// EITHER permission — whichever page you got there from.
+// underlying edit-a-plan-row logic either way). "/plan" has no per-user
+// permission of its own (every staffer can always reach it), so this is
+// just the plain logged-in guard — kept as its own function for the same
+// defense-in-depth as every other action here, and so the two pages'
+// shared actions read as one concept at the call site.
 export async function requirePlanOrPlanesAccess() {
   const session = await auth();
-  if (session?.user?.role === "OWNER") return;
   if (!session?.user?.id) redirect("/dashboard");
-
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { canAccessPlan: true, canAccessPlanes: true },
-  });
-  if (!user?.canAccessPlan && !user?.canAccessPlanes) {
-    redirect("/dashboard");
-  }
 }
 
 // Multi-plan management is a paid upsell, not something a gym self-serves —

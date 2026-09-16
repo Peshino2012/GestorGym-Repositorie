@@ -8,7 +8,6 @@ export default function AppShell({
   role,
   canAccessClasses,
   canAccessHorarios,
-  canAccessPlan,
   canAccessPlanes,
   canAccessCheckin,
   planesModuleEnabled,
@@ -22,7 +21,6 @@ export default function AppShell({
   role?: "OWNER" | "STAFF";
   canAccessClasses?: boolean;
   canAccessHorarios?: boolean;
-  canAccessPlan?: boolean;
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
   planesModuleEnabled?: boolean;
@@ -49,7 +47,6 @@ export default function AppShell({
         role={role}
         canAccessClasses={canAccessClasses}
         canAccessHorarios={canAccessHorarios}
-        canAccessPlan={canAccessPlan}
         canAccessPlanes={canAccessPlanes}
         canAccessCheckin={canAccessCheckin}
         planesModuleEnabled={planesModuleEnabled}
