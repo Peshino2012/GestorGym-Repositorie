@@ -14,7 +14,6 @@ import {
   Images,
   UserCog,
   Settings,
-  Zap,
   X,
   IdCard,
 } from "lucide-react";
@@ -92,9 +91,10 @@ export default function Sidebar({
         open ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="flex items-center justify-between px-6 py-6">
+      <div className="flex items-center justify-between border-b border-sidebar-border px-6 py-6" style={{ borderImage: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent))) 1" }}>
         <div className="flex items-center gap-1.5 text-lg font-bold tracking-tight">
-          <Zap className="h-4 w-4 fill-primary text-primary" strokeWidth={0} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
+          <img src="/brand/icon.png" alt="" className="h-5 w-5" />
           Cauccen <span className="font-normal text-sidebar-muted">gestor</span>
         </div>
         <button

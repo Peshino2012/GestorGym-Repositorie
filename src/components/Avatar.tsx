@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 const GRADIENTS = [
-  "from-primary to-orange-400",
+  "from-primary to-accent",
   "from-emerald-500 to-teal-400",
   "from-sky-500 to-indigo-400",
   "from-fuchsia-500 to-pink-400",

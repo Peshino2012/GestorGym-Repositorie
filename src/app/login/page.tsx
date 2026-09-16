@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
-import { Zap } from "lucide-react";
 import { signIn } from "@/auth";
 
 async function loginAction(formData: FormData) {
@@ -31,10 +30,8 @@ export default async function LoginPage({
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex items-center gap-1.5 text-xl font-bold tracking-tight">
-            <Zap className="h-5 w-5 fill-primary text-primary" strokeWidth={0} />
-            Cauccen <span className="font-normal text-muted-foreground">gestor</span>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
+          <img src="/brand/logo-full.png" alt="Cauccen" className="h-auto w-44" />
           <p className="text-sm text-muted-foreground">
             Panel de administración para tu gimnasio
           </p>
