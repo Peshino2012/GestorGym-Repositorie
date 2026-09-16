@@ -39,7 +39,6 @@ export default function Sidebar({
   role,
   canAccessClasses = true,
   canAccessHorarios = true,
-  canAccessPlan = true,
   canAccessPlanes = true,
   canAccessCheckin = true,
   planesModuleEnabled = false,
@@ -51,7 +50,6 @@ export default function Sidebar({
   role?: "OWNER" | "STAFF";
   canAccessClasses?: boolean;
   canAccessHorarios?: boolean;
-  canAccessPlan?: boolean;
   canAccessPlanes?: boolean;
   canAccessCheckin?: boolean;
   planesModuleEnabled?: boolean;
@@ -65,13 +63,11 @@ export default function Sidebar({
   // "/plan" and "/planes" are mutually exclusive per viewer, not per gym —
   // "/planes" (the paid module) wins for THIS user only if the gym has it
   // AND they personally have that permission; "/plan" is the fallback
-  // whenever either of those isn't true, as long as they have the "/plan"
-  // permission. Same underlying Plan row(s) either way, so nothing is lost
-  // switching between them.
+  // whenever that isn't true. "/plan" itself has no permission of its own —
+  // it's the gym's core cuota, everyone can always reach it.
   const hasPlanesAccess = role === "OWNER" || canAccessPlanes;
   const showPlanes = planesModuleEnabled && hasPlanesAccess;
-  const hasPlanAccess = role === "OWNER" || canAccessPlan;
-  const showPlan = !showPlanes && hasPlanAccess;
+  const showPlan = !showPlanes;
 
   // Clases and Horarios are paid modules too — unlike Plan/Planes there's
   // no free fallback, so the gym-level flag blocks everyone, owner
