@@ -97,6 +97,13 @@ model Payment {
   renewedFromId String?  @unique
   renewedFrom   Payment? @relation("PaymentRenewal", fields: [renewedFromId], references: [id])
   renewedTo     Payment? @relation("PaymentRenewal")
+
+  // Set when a "Cobrar con Mercado Pago" link is generated for this cobro.
+  // mpPaymentId is MP's own id for the payment once it's actually paid —
+  // unique so the webhook can never apply the same MP payment twice, even
+  // if MP sends the same notification more than once (it does).
+  mpPreferenceId String?
+  mpPaymentId    String? @unique
 }
 
 enum PaymentStatus {

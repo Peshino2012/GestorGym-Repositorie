@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { addDays } from "date-fns";
-import { CheckCircle2, MessageCircle, Pencil, Trash2, Undo2 } from "lucide-react";
+import { CheckCircle2, CreditCard, MessageCircle, Pencil, Trash2, Undo2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getPaymentStatusBreakdown } from "@/lib/stats";
@@ -12,6 +12,7 @@ import StatusBadge from "@/components/StatusBadge";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import PendingSubmitButton from "@/components/PendingSubmitButton";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MercadoPagoButton from "@/components/MercadoPagoButton";
 import PaymentStatusChart from "@/components/charts/PaymentStatusChart";
 import MemberCombobox from "@/components/MemberCombobox";
 import NewPaymentForm from "./NewPaymentForm";
@@ -67,6 +68,7 @@ export default async function CobrosPage({
   ]);
 
   const membersWithActivePayment = [...new Set(activePayments.map((p) => p.memberId))];
+  const mercadoPagoEnabled = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
 
   const RECENT_LIMIT = 5;
   const vencidosAll = payments.filter((p) => p.status === "OVERDUE");
@@ -152,17 +154,32 @@ export default async function CobrosPage({
                   tone="danger"
                   defaultOpen
                 >
-                  <CobrosTable payments={vencidos} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
+                  <CobrosTable
+                    payments={vencidos}
+                    markPaidCutoff={markPaidCutoff}
+                    gymName={gym.name}
+                    mercadoPagoEnabled={mercadoPagoEnabled}
+                  />
                 </CobrosSection>
               )}
               {porVencer.length > 0 && (
                 <CobrosSection title="Por vencer pronto" count={porVencer.length} tone="warning" defaultOpen>
-                  <CobrosTable payments={porVencer} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
+                  <CobrosTable
+                    payments={porVencer}
+                    markPaidCutoff={markPaidCutoff}
+                    gymName={gym.name}
+                    mercadoPagoEnabled={mercadoPagoEnabled}
+                  />
                 </CobrosSection>
               )}
               {alDia.length > 0 && (
                 <CobrosSection title="Al día" count={alDia.length} tone="muted">
-                  <CobrosTable payments={alDia} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
+                  <CobrosTable
+                    payments={alDia}
+                    markPaidCutoff={markPaidCutoff}
+                    gymName={gym.name}
+                    mercadoPagoEnabled={mercadoPagoEnabled}
+                  />
                 </CobrosSection>
               )}
               {historial.length > 0 && (
@@ -173,7 +190,12 @@ export default async function CobrosPage({
                   viewAllHref={!isFiltered && historialAll.length > historial.length ? "/cobros?status=PAID" : undefined}
                   tone="muted"
                 >
-                  <CobrosTable payments={historial} markPaidCutoff={markPaidCutoff} gymName={gym.name} />
+                  <CobrosTable
+                    payments={historial}
+                    markPaidCutoff={markPaidCutoff}
+                    gymName={gym.name}
+                    mercadoPagoEnabled={mercadoPagoEnabled}
+                  />
                 </CobrosSection>
               )}
             </>
@@ -288,10 +310,12 @@ function CobrosTable({
   payments,
   markPaidCutoff,
   gymName,
+  mercadoPagoEnabled,
 }: {
   payments: PaymentWithMember[];
   markPaidCutoff: Date;
   gymName: string;
+  mercadoPagoEnabled: boolean;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -358,6 +382,15 @@ function CobrosTable({
                           <span className="hidden sm:inline">WhatsApp</span>
                         </WhatsAppButton>
                       </form>
+                      {mercadoPagoEnabled && (
+                        <MercadoPagoButton
+                          paymentId={p.id}
+                          className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] disabled:opacity-60 sm:px-3"
+                        >
+                          <CreditCard className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                          <span className="hidden sm:inline">Mercado Pago</span>
+                        </MercadoPagoButton>
+                      )}
                       {(p.status === "OVERDUE" || p.dueDate <= markPaidCutoff) && (
                         <form action={markPaid.bind(null, p.id)}>
                           <PendingSubmitButton

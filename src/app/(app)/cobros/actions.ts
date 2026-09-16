@@ -1,23 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/generated/prisma/client";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { paymentReminderMessage } from "@/lib/messages";
-import { computeNextDueDate } from "@/lib/billing";
 import { parseDateInput } from "@/lib/format";
 import { getGymSettings } from "@/lib/gymSettings";
-
-// Belt-and-suspenders for the application-level checks below: the database
-// itself has a unique index rejecting a second PENDING/OVERDUE payment for
-// the same socio (see the payment_one_active_per_member migration), so this
-// can never silently create a duplicate — it either gets caught earlier by
-// the explicit check, or by this constraint, and either way ends up here as
-// a clean message instead of a raw Prisma error. Payment has no other
-// unique constraint a plain create() can hit, so any P2002 here is this one.
-function isDuplicateActivePaymentError(err: unknown) {
-  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
-}
+import { applyPaymentPaid, isDuplicateActivePaymentError } from "@/lib/payments";
+import { createPaymentPreference } from "@/lib/mercadopago";
 
 export async function getMemberPaymentHistory(memberId: string) {
   if (!memberId) return [];
@@ -30,53 +20,52 @@ export async function getMemberPaymentHistory(memberId: string) {
 }
 
 export async function markPaid(paymentId: string) {
-  // Idempotency guard: a double-click (or a slow request retried) would
-  // otherwise run this twice and generate two renewal cobros for the same
-  // socio — re-creating the exact duplicate-cobro problem this whole flow
-  // exists to prevent.
-  const existing = await db.payment.findUniqueOrThrow({
-    where: { id: paymentId },
-    include: { renewedTo: true, plan: true },
-  });
-  if (existing.status === "PAID" || existing.renewedTo) {
-    return;
-  }
-
-  const payment = await db.payment.update({
-    where: { id: paymentId },
-    data: { status: "PAID", paidAt: new Date() },
-  });
-
-  await db.member.update({
-    where: { id: payment.memberId },
-    data: { status: "ACTIVE" },
-  });
-
-  // Roll the subscription forward automatically — the owner shouldn't have
-  // to manually create next month's cobro for a socio that's already paying.
-  if (existing.plan) {
-    try {
-      await db.payment.create({
-        data: {
-          memberId: payment.memberId,
-          planId: existing.plan.id,
-          amount: payment.amount,
-          dueDate: computeNextDueDate(payment.dueDate, existing.plan.billingCycle),
-          status: "PENDING",
-          renewedFromId: payment.id,
-        },
-      });
-    } catch (err) {
-      // Shouldn't be reachable (the idempotency guard above already stops a
-      // second renewal), but the DB constraint is the real backstop — if it
-      // ever fires, the payment stays correctly marked PAID either way.
-      if (!isDuplicateActivePaymentError(err)) throw err;
-    }
-  }
+  const payment = await applyPaymentPaid(paymentId);
+  if (!payment) return; // already paid / already renewed — nothing to do
 
   revalidatePath("/cobros");
   revalidatePath("/dashboard");
   revalidatePath(`/socios/${payment.memberId}`);
+}
+
+// Generates a one-off Mercado Pago payment link for this cobro and returns
+// the URL to open — same "open a link, someone else does the rest" shape
+// as the WhatsApp reminder button. Marking it paid happens later, on its
+// own, when Mercado Pago calls our webhook (see
+// app/api/webhooks/mercadopago/route.ts) — this action only asks for the
+// link, it never touches the cobro's status.
+export async function createMercadoPagoLink(paymentId: string): Promise<string> {
+  const payment = await db.payment.findUniqueOrThrow({
+    where: { id: paymentId },
+    include: { member: true },
+  });
+  if (payment.status === "PAID") {
+    throw new Error("Este cobro ya está pagado.");
+  }
+
+  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!accessToken) {
+    throw new Error("Este gimnasio todavía no tiene Mercado Pago configurado.");
+  }
+
+  const host = (await headers()).get("host");
+  const baseUrl = `https://${host}`;
+
+  const preference = await createPaymentPreference({
+    accessToken,
+    externalReference: payment.id,
+    title: `Cuota - ${payment.member.name}`,
+    amount: payment.amount,
+    notificationUrl: `${baseUrl}/api/webhooks/mercadopago`,
+    backUrl: `${baseUrl}/cobros`,
+  });
+
+  await db.payment.update({
+    where: { id: payment.id },
+    data: { mpPreferenceId: preference.id },
+  });
+
+  return preference.initPoint;
 }
 
 // The actual WhatsApp send happens client-side (WhatsAppButton opens a
