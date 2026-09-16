@@ -7,7 +7,7 @@ import { paymentReminderMessage } from "@/lib/messages";
 import { parseDateInput } from "@/lib/format";
 import { getGymSettings } from "@/lib/gymSettings";
 import { applyPaymentPaid, isDuplicateActivePaymentError } from "@/lib/payments";
-import { createPaymentPreference } from "@/lib/mercadopago";
+import { createPaymentPreference, generatePaymentQrDataUrl } from "@/lib/mercadopago";
 
 export async function getMemberPaymentHistory(memberId: string) {
   if (!memberId) return [];
@@ -28,13 +28,15 @@ export async function markPaid(paymentId: string) {
   revalidatePath(`/socios/${payment.memberId}`);
 }
 
-// Generates a one-off Mercado Pago payment link for this cobro and returns
-// the URL to open — same "open a link, someone else does the rest" shape
-// as the WhatsApp reminder button. Marking it paid happens later, on its
-// own, when Mercado Pago calls our webhook (see
-// app/api/webhooks/mercadopago/route.ts) — this action only asks for the
-// link, it never touches the cobro's status.
-export async function createMercadoPagoLink(paymentId: string): Promise<string> {
+// Generates a one-off Mercado Pago payment link for this cobro, encoded as
+// a QR the socio scans with their own phone — same "hand off to someone
+// else" shape as the WhatsApp reminder button, just scanned instead of
+// opened. Marking it paid happens later, on its own, when Mercado Pago
+// calls our webhook (see app/api/webhooks/mercadopago/route.ts) — this
+// action only asks for the link, it never touches the cobro's status.
+export async function createMercadoPagoLink(
+  paymentId: string
+): Promise<{ url: string; qrDataUrl: string }> {
   const payment = await db.payment.findUniqueOrThrow({
     where: { id: paymentId },
     include: { member: true },
@@ -65,7 +67,8 @@ export async function createMercadoPagoLink(paymentId: string): Promise<string> 
     data: { mpPreferenceId: preference.id },
   });
 
-  return preference.initPoint;
+  const qrDataUrl = await generatePaymentQrDataUrl(preference.initPoint);
+  return { url: preference.initPoint, qrDataUrl };
 }
 
 // The actual WhatsApp send happens client-side (WhatsAppButton opens a

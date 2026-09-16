@@ -1,6 +1,15 @@
 import crypto from "node:crypto";
+import QRCode from "qrcode";
 
 const API = "https://api.mercadopago.com";
+
+// Renders the payment link as a scannable QR instead of opening it — the
+// socio scans with their own phone and pays there, nobody has to hand a
+// device back and forth. It's the exact same Checkout Pro link either way,
+// just encoded as an image instead of opened as a tab.
+export function generatePaymentQrDataUrl(url: string): Promise<string> {
+  return QRCode.toDataURL(url, { margin: 1, width: 320 });
+}
 
 export type MpPreference = { id: string; initPoint: string };
 
