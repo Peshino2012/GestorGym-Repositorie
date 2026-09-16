@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getGymSettings } from "@/lib/gymSettings";
 
 export async function requireOwner() {
   const session = await auth();
@@ -11,15 +12,17 @@ export async function requireOwner() {
 }
 
 // Clases and Horarios are paid upsells too, same idea as Planes below —
-// gated by an env var only we set per Vercel project, out of reach of the
-// gym's own Configuración. Unlike Planes there's no free fallback page: if
-// the gym hasn't paid for it, nobody sees it, owner included.
+// gated by a GymSettings column only gestor-admin-panel writes to (a
+// dedicated, narrowly-scoped DB role — see Docs/Alta_Nuevo_Gimnasio.md),
+// out of reach of the gym's own Configuración. Unlike Planes there's no
+// free fallback page: if the gym hasn't paid for it, nobody sees it,
+// owner included.
 export async function isClasesModuleEnabled() {
-  return process.env.CLASES_MODULE_ENABLED === "true";
+  return (await getGymSettings()).classesEnabled;
 }
 
 export async function isHorariosModuleEnabled() {
-  return process.env.HORARIOS_MODULE_ENABLED === "true";
+  return (await getGymSettings()).horariosEnabled;
 }
 
 export async function requireClassesEnabled() {
@@ -87,10 +90,10 @@ export async function requirePlanOrPlanesAccess() {
 }
 
 // Multi-plan management is a paid upsell, not something a gym self-serves —
-// gated by an env var only we set (per Vercel project), so it's out of
-// reach of the gym's own Configuración.
+// gated by a GymSettings column only gestor-admin-panel writes to, so it's
+// out of reach of the gym's own Configuración.
 export async function isPlanesModuleEnabled() {
-  return process.env.PLANES_MODULE_ENABLED === "true";
+  return (await getGymSettings()).planesEnabled;
 }
 
 // Gates "/planes" itself (the full multi-plan management page — a

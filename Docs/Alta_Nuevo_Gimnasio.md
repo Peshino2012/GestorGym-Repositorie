@@ -19,10 +19,9 @@ Crear un proyecto Vercel **nuevo** conectado al repo de GitHub (`GestorGym-Repos
 | `DATABASE_URL` | connection string de la base Neon del paso 1 |
 | `AUTH_SECRET` | generar uno nuevo (`openssl rand -base64 32` o similar) — **nunca reusar el de otro cliente** |
 | `BLOB_READ_WRITE_TOKEN` | token del Vercel Blob store de este proyecto (fotos de socios, logo del gimnasio) — no es obligatorio para arrancar, solo para poder subir fotos |
-| `PLANES_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Planes (ver sección 6) |
-| `CLASES_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Clases |
-| `HORARIOS_MODULE_ENABLED` | **no cargar** a menos que el cliente haya pagado el módulo de Horarios |
 | `PUBLIC_SITE_URL` | solo si este cliente también tiene la web pública (apéndice) — su URL |
+
+Clases, Horarios y Planes ya NO se activan con variables de entorno — ver sección 6.
 
 ## 3. Dos ajustes que Vercel no pone bien solo
 
@@ -55,9 +54,22 @@ Este script (`prisma/seed-onboarding.ts`) — a diferencia de `seed.ts`, que es 
 
 ## 6. Clases, Horarios y Planes son upsells pagos
 
-Por defecto, un gimnasio nuevo arranca **sin acceso a Clases, Horarios ni Planes** — ni siquiera el dueño los ve en el menú. Alcanza para usar el gestor normalmente (altas de socios, cobros, un solo plan base, etc.), pero no se pueden crear planes adicionales ni usar esos otros dos módulos.
+Por defecto, un gimnasio nuevo arranca **sin acceso a Clases, Horarios ni Planes** — ni siquiera el dueño los ve en el menú (son las columnas `classesEnabled`/`horariosEnabled`/`planesEnabled` de `GymSettings`, con default `false`). Alcanza para usar el gestor normalmente (altas de socios, cobros, un solo plan base, etc.), pero no se pueden crear planes adicionales ni usar esos otros dos módulos.
 
-Para habilitarle alguno a un cliente que pagó ese módulo, usar el panel de admin (`gestor-admin-panel`, separado de este) — ahí se prende/apaga por gimnasio con un click y redespliega solo. Si por algún motivo hay que hacerlo a mano: cargar `PLANES_MODULE_ENABLED` / `CLASES_MODULE_ENABLED` / `HORARIOS_MODULE_ENABLED` en `"true"` en las variables de entorno de su proyecto GestorGym (paso 2) y volver a desplegar. Esto no lo puede activar el cliente por su cuenta — no hay ningún botón para eso en su panel, a propósito.
+Para habilitarle alguno a un cliente que pagó ese módulo, usar el panel de admin (`gestor-admin-panel`, separado de este) — ahí se prende/apaga por gimnasio con un click, escribe directo en `GymSettings` de la base de ese cliente y se ve reflejado al instante (sin redeploy). Esto no lo puede activar el cliente por su cuenta — no hay ningún botón para eso en su panel, a propósito.
+
+Para que el panel de admin pueda escribir en la base de un cliente nuevo, hace falta un rol de Postgres dedicado, con permisos acotados a un solo campo — **no reusar el `DATABASE_URL` del paso 1** (ese es el rol dueño, con acceso a todo, socios incluidos):
+
+```sql
+CREATE ROLE admin_panel_writer WITH LOGIN PASSWORD '<generar uno random>';
+GRANT CONNECT ON DATABASE neondb TO admin_panel_writer;
+GRANT USAGE ON SCHEMA public TO admin_panel_writer;
+GRANT SELECT, UPDATE ON "GymSettings" TO admin_panel_writer;
+```
+
+Si el rol se crea desde la consola/API de Neon (`neonctl roles create`) en vez de por SQL como arriba, Neon lo agrega automáticamente al rol `neon_superuser` — que puede leer todo, incluidos los datos de los socios. Crearlo por SQL, como en el bloque de arriba, evita eso.
+
+Con ese rol armado, la connection string resultante (`postgresql://admin_panel_writer:...`) va como una variable nueva `DATABASE_URL_<SLUG_DEL_CLIENTE>` en el proyecto de Vercel de `gestor-admin-panel`, y el cliente se agrega a la lista en `src/lib/gyms.ts` de ese repo (`id`, `label`, `dbUrlEnvVar`, las dos URLs).
 
 ## 7. Dominio propio (opcional)
 

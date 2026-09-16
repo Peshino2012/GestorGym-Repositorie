@@ -173,7 +173,7 @@ model GymSettings {
   checkinEnabled  Boolean @default(false)
   classesEnabled  Boolean @default(false)
   horariosEnabled Boolean @default(false)
-  planesEnabled   Boolean @default(true)
+  planesEnabled   Boolean @default(false)
 }
 
 model Trainer {
