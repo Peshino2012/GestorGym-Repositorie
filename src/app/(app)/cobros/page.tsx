@@ -385,6 +385,7 @@ function CobrosTable({
                       {mercadoPagoEnabled && (
                         <MercadoPagoButton
                           paymentId={p.id}
+                          memberName={p.member.name}
                           className="group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 hover:bg-background active:scale-[0.96] disabled:opacity-60 sm:px-3"
                         >
                           <CreditCard className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
