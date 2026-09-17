@@ -20,10 +20,10 @@
   --danger: 0 72% 51%;
   --danger-bg: 0 72% 96%;
 
-  --sidebar: 220 35% 11%;
+  --sidebar: 220 28% 22%;
   --sidebar-foreground: 0 0% 92%;
-  --sidebar-muted: 220 15% 65%;
-  --sidebar-border: 220 30% 20%;
+  --sidebar-muted: 220 15% 68%;
+  --sidebar-border: 220 24% 30%;
 }
 
 @theme inline {
