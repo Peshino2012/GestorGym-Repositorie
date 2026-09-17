@@ -93,8 +93,10 @@ export default function Sidebar({
     >
       <div className="flex items-center justify-between border-b border-sidebar-border px-6 py-6" style={{ borderImage: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent))) 1" }}>
         <div className="flex items-center gap-1.5 text-lg font-bold tracking-tight">
-          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
-          <img src="/brand/icon.png" alt="" className="h-7 w-7" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
+            <img src="/brand/icon.png" alt="" className="h-full w-full" />
+          </span>
           Cauccen <span className="font-normal text-sidebar-muted">gestor</span>
         </div>
         <button
