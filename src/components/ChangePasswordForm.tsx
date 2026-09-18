@@ -10,10 +10,11 @@ export default function ChangePasswordForm() {
 
   useEffect(() => {
     if (state.success) {
-      // Hard navigation on purpose: guarantees a clean reload with no
-      // leftover client router cache after the session cookie was cleared.
+      // Hard navigation to a plain route that clears the session and
+      // redirects — not a Server Action, so it can't corrupt this one's
+      // response the way calling signOut() directly in the action did.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = "/login";
+      window.location.href = "/api/auth/complete-password-change";
     }
   }, [state.success]);
 
