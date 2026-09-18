@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
 export type ChangePasswordState = { error?: string; success?: boolean };
@@ -38,7 +38,11 @@ export async function changePassword(
   // instead of a manual cookies().delete() loop. The client does a hard
   // navigation to /login afterwards — a soft/RSC redirect from here kept
   // re-evaluating against the still-cached session and bouncing back here.
-  await signOut({ redirect: false });
-
+  // Session invalidation happens client-side after this returns — see
+  // ChangePasswordForm, which hits /api/auth/complete-password-change
+  // rather than calling signOut() here. That used to corrupt this
+  // action's own response: React re-renders the invoking page to report
+  // an action's result, and by the time it did, signOut() had already
+  // cleared the session this exact page depends on.
   return { success: true };
 }
