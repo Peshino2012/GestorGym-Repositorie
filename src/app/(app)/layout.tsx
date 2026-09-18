@@ -56,6 +56,7 @@ export default async function AppLayout({
       horariosModuleEnabled={horariosModuleEnabled}
       userName={session?.user?.name}
       gymLabel={gymLabel}
+      gymLogoUrl={gym.logoUrl}
       logoutAction={logoutAction}
     >
       {children}
