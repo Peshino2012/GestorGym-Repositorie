@@ -6,9 +6,20 @@ const CHANGE_PASSWORD_PATH = "/perfil/cambiar-password";
 // register attendance. Meant to run on a tablet fixed at the gym entrance.
 const PUBLIC_PATH_PREFIX = "/registro";
 
+const SESSION_TIMEOUT_SECONDS = 10 * 60;
+
 export const authConfig = {
   pages: { signIn: "/login" },
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    // Inactivity timeout, not a fixed session length: updateAge: 0 makes
+    // every authenticated request (any page load, any Server Action —
+    // middleware sees both) re-stamp the session's expiry to now + maxAge.
+    // A session only actually expires once 10 minutes pass with zero
+    // requests; someone actively using the app never hits it.
+    maxAge: SESSION_TIMEOUT_SECONDS,
+    updateAge: 0,
+  },
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
