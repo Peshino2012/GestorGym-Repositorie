@@ -10,6 +10,7 @@ export async function getGymSettings() {
       phone: null,
       email: null,
       logoUrl: null,
+      themeColor: null,
       checkinEnabled: false,
       classesEnabled: false,
       horariosEnabled: false,

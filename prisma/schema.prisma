@@ -177,6 +177,11 @@ model GymSettings {
   phone           String?
   email           String?
   logoUrl         String?
+  // HSL triplet ("145 84% 19%", no hsl()/commas — same format as the
+  // --primary custom property it overrides) sampled from the gym's own
+  // logo, so their panel reads as their own product instead of visibly
+  // "powered by Cauccen". Null falls back to Cauccen's own blue/teal.
+  themeColor      String?
   checkinEnabled  Boolean @default(false)
   classesEnabled  Boolean @default(false)
   horariosEnabled Boolean @default(false)

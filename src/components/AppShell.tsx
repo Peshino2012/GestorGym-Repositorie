@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Image from "next/image";
 import { Menu, LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
 
@@ -16,6 +15,7 @@ export default function AppShell({
   horariosModuleEnabled,
   userName,
   gymLabel,
+  gymName,
   gymLogoUrl,
   logoutAction,
   children,
@@ -30,6 +30,7 @@ export default function AppShell({
   horariosModuleEnabled?: boolean;
   userName?: string | null;
   gymLabel?: string;
+  gymName?: string;
   gymLogoUrl?: string | null;
   logoutAction: () => void;
   children: ReactNode;
@@ -55,6 +56,8 @@ export default function AppShell({
         planesModuleEnabled={planesModuleEnabled}
         classesModuleEnabled={classesModuleEnabled}
         horariosModuleEnabled={horariosModuleEnabled}
+        gymName={gymName}
+        gymLogoUrl={gymLogoUrl}
         open={open}
         onClose={() => setOpen(false)}
       />
@@ -70,15 +73,6 @@ export default function AppShell({
             >
               <Menu className="h-5 w-5" />
             </button>
-            {gymLogoUrl && (
-              <Image
-                src={gymLogoUrl}
-                alt=""
-                width={28}
-                height={28}
-                className="hidden h-7 w-7 shrink-0 rounded-full object-cover sm:block"
-              />
-            )}
             {gymLabel && (
               <p className="hidden text-sm text-muted-foreground sm:block">
                 {gymLabel}
