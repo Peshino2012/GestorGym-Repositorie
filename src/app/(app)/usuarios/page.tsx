@@ -80,6 +80,10 @@ export default async function UsuariosPage({
                     <td className="px-5 py-3 text-right">
                       {u.id === currentUserId ? (
                         <span className="text-xs text-muted-foreground">Vos</span>
+                      ) : u.protected ? (
+                        <span className="text-xs text-muted-foreground" title="Esta cuenta no puede ser modificada por otros usuarios">
+                          Protegida
+                        </span>
                       ) : (
                         <form action={toggleUserActive.bind(null, u.id, !u.active)} className="inline">
                           <button

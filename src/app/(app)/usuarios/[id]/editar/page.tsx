@@ -18,6 +18,7 @@ export default async function EditarUsuarioPage({
   if (!user) notFound();
 
   const isSelf = session.user?.id === user.id;
+  const readOnly = user.protected && !isSelf;
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
@@ -32,6 +33,12 @@ export default async function EditarUsuarioPage({
         <h1 className="text-2xl font-bold">Editar usuario</h1>
       </div>
 
+      {readOnly && (
+        <p className="rounded-2xl border border-border bg-surface p-5 text-sm text-muted-foreground">
+          Esta cuenta está protegida — no se puede editar, desactivar ni eliminar desde acá.
+        </p>
+      )}
+
       <EditUserForm
         userId={user.id}
         name={user.name}
@@ -39,9 +46,10 @@ export default async function EditarUsuarioPage({
         phone={user.phone ?? ""}
         role={user.role}
         isSelf={isSelf}
+        readOnly={readOnly}
       />
 
-      {!isSelf && (
+      {!isSelf && !readOnly && (
         <form
           action={deleteUser.bind(null, user.id)}
           className="rounded-2xl border border-destructive/30 bg-surface p-6"
