@@ -43,6 +43,8 @@ export default function Sidebar({
   planesModuleEnabled = false,
   classesModuleEnabled = false,
   horariosModuleEnabled = false,
+  gymName,
+  gymLogoUrl,
   open = false,
   onClose,
 }: {
@@ -54,6 +56,8 @@ export default function Sidebar({
   planesModuleEnabled?: boolean;
   classesModuleEnabled?: boolean;
   horariosModuleEnabled?: boolean;
+  gymName?: string;
+  gymLogoUrl?: string | null;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -92,12 +96,32 @@ export default function Sidebar({
       }`}
     >
       <div className="flex items-center justify-between border-b border-sidebar-border px-6 py-6" style={{ borderImage: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent))) 1" }}>
-        <div className="flex items-center gap-1.5 text-lg font-bold tracking-tight">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 p-1">
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
-            <img src="/brand/icon.png" alt="" className="h-full w-full" />
-          </span>
-          Cauccen <span className="font-normal text-sidebar-muted">gestor</span>
+        <div className="flex min-w-0 items-center gap-2 text-lg font-bold tracking-tight">
+          {gymLogoUrl ? (
+            // A client's own logo can be any shape — a light chip with
+            // object-contain (never a forced circle/crop) is the only
+            // treatment that doesn't mangle some clients' artwork.
+            <span className="flex h-9 max-w-[7.5rem] shrink-0 items-center justify-center rounded-lg bg-white/90 px-1.5 py-1">
+              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary remote logo, dimensions unknown ahead of time */}
+              <img src={gymLogoUrl} alt="" className="h-full w-full object-contain" />
+            </span>
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 p-1">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
+              <img src="/brand/icon.png" alt="" className="h-full w-full" />
+            </span>
+          )}
+          {gymLogoUrl && gymName ? (
+            // Only white-label once there's an actual logo on file — a
+            // custom name alone (every gym has SOME name, even the
+            // unsold "Mi Gimnasio" default) isn't a strong enough signal
+            // that this is a real client's own branded panel.
+            <span className="truncate">{gymName}</span>
+          ) : (
+            <span>
+              Cauccen <span className="font-normal text-sidebar-muted">gestor</span>
+            </span>
+          )}
         </div>
         <button
           type="button"

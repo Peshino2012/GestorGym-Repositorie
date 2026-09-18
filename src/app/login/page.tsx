@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
+import { getGymSettings } from "@/lib/gymSettings";
 
 async function loginAction(formData: FormData) {
   "use server";
@@ -24,14 +25,20 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const [{ error }, gym] = await Promise.all([searchParams, getGymSettings()]);
+  const isWhiteLabeled = Boolean(gym.logoUrl);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here */}
-          <img src="/brand/logo-full.png" alt="Cauccen" className="h-auto w-72" />
+          {isWhiteLabeled ? (
+            // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote logo, dimensions unknown ahead of time
+            <img src={gym.logoUrl!} alt={gym.name} className="h-auto max-h-28 w-auto max-w-full object-contain" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element -- static brand asset, no need for next/image here
+            <img src="/brand/logo-full.png" alt="Cauccen" className="h-auto w-72" />
+          )}
           <p className="text-sm text-muted-foreground">
             Panel de administración para tu gimnasio
           </p>
