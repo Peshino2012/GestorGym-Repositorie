@@ -17,6 +17,11 @@ model User {
   active             Boolean  @default(true)
   mustChangePassword Boolean  @default(false)
   createdAt          DateTime @default(now())
+  // Marks the Cauccen-managed account kept on every gym (see onboarding) so
+  // its own client — also an OWNER, symmetric permissions otherwise — can't
+  // deactivate, delete, demote, or lock it out by changing its email/
+  // password. Sets nowhere in the UI; only via direct DB access.
+  protected          Boolean  @default(false)
   canAccessClasses   Boolean  @default(true)
   canAccessHorarios  Boolean  @default(true)
   canAccessPlanes    Boolean  @default(true)

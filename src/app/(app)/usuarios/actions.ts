@@ -17,6 +17,20 @@ function isUniqueEmailError(err: unknown) {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
 }
 
+// OWNER permissions are symmetric — any owner can edit, deactivate, or
+// delete any other owner, including changing their email/password, any of
+// which can lock that person out. A `protected` account (the Cauccen
+// account kept on every gym) must be exempt from all of that when acted on
+// by anyone but itself, or the client it belongs to could lock the
+// developer out of their own gym.
+async function assertNotProtectedByOther(targetId: string, actorId: string) {
+  if (targetId === actorId) return;
+  const target = await db.user.findUnique({ where: { id: targetId }, select: { protected: true } });
+  if (target?.protected) {
+    throw new Error("Esta cuenta está protegida y no puede ser modificada por otros usuarios.");
+  }
+}
+
 export async function createStaffUser(
   _prevState: UserFormState,
   formData: FormData
@@ -65,6 +79,12 @@ export async function updateUser(
   formData: FormData
 ): Promise<UserFormState> {
   const session = await requireOwner();
+  if (session.user?.id !== id) {
+    const target = await db.user.findUnique({ where: { id }, select: { protected: true } });
+    if (target?.protected) {
+      return { error: "Esta cuenta está protegida y no puede ser modificada por otros usuarios." };
+    }
+  }
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -111,6 +131,7 @@ export async function toggleUserActive(id: string, active: boolean) {
   if (session.user?.id === id) {
     throw new Error("No podés desactivar tu propia cuenta");
   }
+  await assertNotProtectedByOther(id, session.user?.id ?? "");
 
   await db.user.update({ where: { id }, data: { active } });
   revalidatePath("/usuarios");
@@ -121,6 +142,7 @@ export async function deleteUser(id: string) {
   if (session.user?.id === id) {
     throw new Error("No podés eliminar tu propia cuenta");
   }
+  await assertNotProtectedByOther(id, session.user?.id ?? "");
 
   await db.user.delete({ where: { id } });
   revalidatePath("/usuarios");
