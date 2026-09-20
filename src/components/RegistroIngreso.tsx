@@ -34,6 +34,14 @@ export default function RegistroIngreso({ gymName }: { gymName: string }) {
   }, [showResult]);
 
   if (showResult && state) {
+    if ("rateLimited" in state) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-danger-bg px-6 text-center">
+          <p className="text-3xl font-bold text-danger">Demasiados intentos</p>
+          <p className="text-lg text-danger">Esperá un momento y volvé a intentar.</p>
+        </div>
+      );
+    }
     if (!state.found) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-danger-bg px-6 text-center">

@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { notifyPublicSite } from "@/lib/notifyPublicSite";
+import { requireClassesEnabled } from "@/lib/authz";
 
 export async function createClass(formData: FormData) {
+  await requireClassesEnabled();
+
   const name = String(formData.get("name") ?? "").trim();
   const instructor = String(formData.get("instructor") ?? "").trim();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
@@ -40,6 +43,8 @@ export async function createClass(formData: FormData) {
 }
 
 export async function updateClass(id: string, formData: FormData) {
+  await requireClassesEnabled();
+
   const name = String(formData.get("name") ?? "").trim();
   const instructor = String(formData.get("instructor") ?? "").trim();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
@@ -76,6 +81,8 @@ export async function updateClass(id: string, formData: FormData) {
 }
 
 export async function deleteClass(id: string) {
+  await requireClassesEnabled();
+
   const activeBookings = await db.booking.count({
     where: { classId: id, status: { in: ["BOOKED", "WAITLIST"] } },
   });
@@ -94,6 +101,8 @@ export async function deleteClass(id: string) {
 }
 
 export async function bookMember(classId: string, formData: FormData) {
+  await requireClassesEnabled();
+
   const memberId = String(formData.get("memberId") ?? "");
   if (!memberId) throw new Error("Elegí un socio");
 
@@ -123,6 +132,8 @@ export async function bookMember(classId: string, formData: FormData) {
 }
 
 export async function cancelBooking(bookingId: string) {
+  await requireClassesEnabled();
+
   const booking = await db.booking.update({
     where: { id: bookingId },
     data: { status: "CANCELLED" },
@@ -146,6 +157,8 @@ export async function cancelBooking(bookingId: string) {
 }
 
 export async function cancelAllBookings(classId: string) {
+  await requireClassesEnabled();
+
   await db.booking.updateMany({
     where: { classId, status: { in: ["BOOKED", "WAITLIST"] } },
     data: { status: "CANCELLED" },
