@@ -8,6 +8,7 @@ import { parseDateInput } from "@/lib/format";
 import { getGymSettings } from "@/lib/gymSettings";
 import { applyPaymentPaid, isDuplicateActivePaymentError } from "@/lib/payments";
 import { createPaymentPreference, generatePaymentQrDataUrl } from "@/lib/mercadopago";
+import { requireOwner } from "@/lib/authz";
 
 export async function getMemberPaymentHistory(memberId: string) {
   if (!memberId) return [];
@@ -176,6 +177,11 @@ export async function updatePayment(id: string, formData: FormData) {
 }
 
 export async function deletePayment(id: string) {
+  // Permanently erasing a cobro can hide money a socio actually owes —
+  // same destructive-action bar as archiving/deleting a socio in
+  // socios/actions.ts.
+  await requireOwner();
+
   const payment = await db.payment.findUniqueOrThrow({ where: { id } });
   if (payment.status === "PAID") {
     throw new Error("No se puede eliminar un pago ya cobrado — deshacelo primero.");
