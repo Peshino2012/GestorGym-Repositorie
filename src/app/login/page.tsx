@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
 import { getGymSettings } from "@/lib/gymSettings";
+import PasswordInput from "@/components/PasswordInput";
 
 async function loginAction(formData: FormData) {
   "use server";
@@ -68,19 +69,13 @@ export default async function LoginPage({
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            name="password"
+            label="Contraseña"
+            required
+            autoComplete="current-password"
+          />
 
           <button
             type="submit"
