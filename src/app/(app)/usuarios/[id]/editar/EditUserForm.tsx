@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateUser, type UserFormState } from "../../actions";
+import PasswordInput from "@/components/PasswordInput";
 
 const initialState: UserFormState = {};
 
@@ -90,23 +91,15 @@ export default function EditUserForm({
           <p className="mt-1 text-xs text-muted-foreground">No podés cambiar tu propio rol.</p>
         )}
       </div>
-      <div>
-        <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-          Nueva contraseña (opcional)
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          minLength={6}
-          placeholder="Dejar en blanco para no cambiarla"
-          disabled={readOnly}
-          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Si la completás, se le va a pedir que la cambie al iniciar sesión.
-        </p>
-      </div>
+      <PasswordInput
+        id="password"
+        name="password"
+        label="Nueva contraseña (opcional)"
+        minLength={6}
+        placeholder="Dejar en blanco para no cambiarla"
+        disabled={readOnly}
+        hint="Si la completás, se le va a pedir que la cambie al iniciar sesión."
+      />
       {!readOnly && (
         <button
           type="submit"

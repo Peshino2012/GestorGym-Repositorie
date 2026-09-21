@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createStaffUser, type UserFormState } from "./actions";
+import PasswordInput from "@/components/PasswordInput";
 
 const initialState: UserFormState = {};
 
@@ -46,20 +47,14 @@ export default function NewUserForm() {
           className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-          Contraseña inicial
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={6}
-          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">Mínimo 6 caracteres.</p>
-      </div>
+      <PasswordInput
+        id="password"
+        name="password"
+        label="Contraseña inicial"
+        required
+        minLength={6}
+        hint="Mínimo 6 caracteres."
+      />
       <button
         type="submit"
         disabled={pending}
