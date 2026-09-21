@@ -99,11 +99,21 @@ export async function createPayment(formData: FormData) {
   const planId = String(formData.get("planId") ?? "");
   const amount = Number(formData.get("amount"));
   const dueDate = String(formData.get("dueDate") ?? "");
+  const paidAtInput = String(formData.get("paidAt") ?? "");
 
   if (!memberId) throw new Error("Elegí un socio");
   if (!planId) throw new Error("Elegí un plan");
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("El monto no es válido");
   if (!dueDate) throw new Error("La fecha de vencimiento es obligatoria");
+
+  // Defaults to today (an on-the-spot payment) but can be backdated — for
+  // fixing a cobro that was actually paid a different day, or migrating
+  // payment history from whatever the gym used before this system.
+  // Clamped rather than rejected outright: a typo'd future date shouldn't
+  // hard-fail the whole form when "today" is obviously what was meant.
+  const now = new Date();
+  const paidAt = paidAtInput ? parseDateInput(paidAtInput) : now;
+  if (paidAt > now) paidAt.setTime(now.getTime());
 
   const existingActive = await db.payment.findFirst({
     where: { memberId, status: { in: ["PENDING", "OVERDUE"] } },
@@ -115,18 +125,19 @@ export async function createPayment(formData: FormData) {
   const roundedAmount = Math.round(amount);
 
   try {
-    // Registering a cobro here means the socio paid on the spot — nobody
-    // gets logged as owing money they already handed over. So this creates
-    // the paid record for today plus the next cycle's cobro (due on the
-    // entered "vencimiento"), same as markPaid does for a renewal — that
-    // next cobro is what later falls into Pendiente/Vencido on its own.
+    // Registering a cobro here means the socio already paid — nobody gets
+    // logged as owing money they already handed over. So this creates the
+    // paid record (dated whenever it actually happened) plus the next
+    // cycle's cobro (due on the entered "vencimiento"), same as markPaid
+    // does for a renewal — that next cobro is what later falls into
+    // Pendiente/Vencido on its own.
     const paid = await db.payment.create({
       data: {
         memberId,
         planId,
         amount: roundedAmount,
-        dueDate: new Date(),
-        paidAt: new Date(),
+        dueDate: paidAt,
+        paidAt,
         status: "PAID",
       },
     });
