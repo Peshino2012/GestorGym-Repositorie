@@ -46,9 +46,9 @@ export async function createMercadoPagoLink(
     throw new Error("Este cobro ya está pagado.");
   }
 
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const accessToken = (await getGymSettings()).mercadoPagoAccessToken;
   if (!accessToken) {
-    throw new Error("Este gimnasio todavía no tiene Mercado Pago configurado.");
+    throw new Error("Todavía no conectaste Mercado Pago — hacelo desde Configuración.");
   }
 
   const host = (await headers()).get("host");

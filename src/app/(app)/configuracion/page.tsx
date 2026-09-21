@@ -1,9 +1,11 @@
 import Image from "next/image";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { requireOwner, isClasesModuleEnabled, isHorariosModuleEnabled, isPlanesModuleEnabled } from "@/lib/authz";
 import { getGymSettings } from "@/lib/gymSettings";
 import { db } from "@/lib/db";
-import { updateGymSettings } from "./actions";
+import { updateGymSettings, updateMercadoPagoSettings, disconnectMercadoPago } from "./actions";
 import { updateUserModuleAccess } from "../usuarios/actions";
+import PasswordInput from "@/components/PasswordInput";
 
 export default async function ConfiguracionPage() {
   await requireOwner();
@@ -131,6 +133,65 @@ export default async function ConfiguracionPage() {
           Guardar cambios
         </button>
       </form>
+
+      <div>
+        <h2 className="text-xl font-bold">Mercado Pago</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Tu propia cuenta de Mercado Pago — los cobros que generes con &quot;Cobrar con Mercado Pago&quot;
+          se acreditan ahí, no en la nuestra. Sacá estas credenciales desde tu panel de Mercado Pago,
+          en Tu negocio → Configuración → Credenciales de producción.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-7">
+        <div
+          className={`flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium ${
+            gym.mercadoPagoAccessToken
+              ? "bg-success-bg text-success"
+              : "bg-background text-muted-foreground"
+          }`}
+        >
+          {gym.mercadoPagoAccessToken ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" />
+          )}
+          {gym.mercadoPagoAccessToken ? "Conectado" : "No conectado"}
+        </div>
+
+        <form action={updateMercadoPagoSettings} className="flex flex-col gap-4">
+          <PasswordInput
+            name="mercadoPagoAccessToken"
+            label="Access Token"
+            placeholder={gym.mercadoPagoAccessToken ? "Dejar en blanco para no cambiarlo" : "APP_USR-..."}
+          />
+          <PasswordInput
+            name="mercadoPagoWebhookSecret"
+            label="Clave secreta del webhook (opcional)"
+            placeholder={
+              gym.mercadoPagoWebhookSecret ? "Dejar en blanco para no cambiarla" : "Tu negocio → Webhooks"
+            }
+            hint="Confirma que las notificaciones de pago realmente vienen de Mercado Pago. Recomendado, no obligatorio."
+          />
+          <button
+            type="submit"
+            className="mt-1 self-start rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
+          >
+            Guardar
+          </button>
+        </form>
+
+        {gym.mercadoPagoAccessToken && (
+          <form action={disconnectMercadoPago} className="border-t border-border pt-4">
+            <button
+              type="submit"
+              className="text-sm font-semibold text-destructive transition-colors hover:opacity-80"
+            >
+              Desconectar Mercado Pago
+            </button>
+          </form>
+        )}
+      </div>
 
       <div>
         <h2 className="text-xl font-bold">Permisos por usuario</h2>

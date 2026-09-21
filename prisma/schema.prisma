@@ -187,6 +187,13 @@ model GymSettings {
   // logo, so their panel reads as their own product instead of visibly
   // "powered by Cauccen". Null falls back to Cauccen's own blue/teal.
   themeColor      String?
+  // The gym's own Mercado Pago credentials ("Credenciales de producción"
+  // in their MP developer panel), pasted in from Configuración (OWNER-only,
+  // same as the rest of that page). Every "Cobrar con Mercado Pago" link
+  // and the webhook that confirms it read these, never a shared platform
+  // account, so a socio's payment lands in that gym's own MP balance.
+  mercadoPagoAccessToken  String?
+  mercadoPagoWebhookSecret String?
   checkinEnabled  Boolean @default(false)
   classesEnabled  Boolean @default(false)
   horariosEnabled Boolean @default(false)

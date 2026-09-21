@@ -46,3 +46,45 @@ export async function updateGymSettings(formData: FormData) {
   revalidatePath("/configuracion");
   await notifyPublicSite();
 }
+
+// Fields start blank in the form (see page.tsx) rather than pre-filled with
+// the saved value — a settings page re-serving a plaintext secret to the
+// browser on every visit is its own small leak. So blank on submit means
+// "didn't touch it", not "clear it"; disconnectMercadoPago below is the
+// explicit way to actually remove a credential.
+export async function updateMercadoPagoSettings(formData: FormData) {
+  await requireOwner();
+
+  const accessToken = String(formData.get("mercadoPagoAccessToken") ?? "").trim();
+  const webhookSecret = String(formData.get("mercadoPagoWebhookSecret") ?? "").trim();
+
+  if (!accessToken && !webhookSecret) {
+    return;
+  }
+
+  await db.gymSettings.upsert({
+    where: { id: "main" },
+    create: {
+      id: "main",
+      mercadoPagoAccessToken: accessToken || null,
+      mercadoPagoWebhookSecret: webhookSecret || null,
+    },
+    update: {
+      ...(accessToken ? { mercadoPagoAccessToken: accessToken } : {}),
+      ...(webhookSecret ? { mercadoPagoWebhookSecret: webhookSecret } : {}),
+    },
+  });
+
+  revalidatePath("/configuracion");
+}
+
+export async function disconnectMercadoPago() {
+  await requireOwner();
+
+  await db.gymSettings.update({
+    where: { id: "main" },
+    data: { mercadoPagoAccessToken: null, mercadoPagoWebhookSecret: null },
+  });
+
+  revalidatePath("/configuracion");
+}
