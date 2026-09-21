@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
       address: gym.address,
       phone: gym.phone,
       email: gym.email,
+      logoUrl: toAbsolute(gym.logoUrl),
     },
     plans: plans.map((p) => ({
       id: p.id,
