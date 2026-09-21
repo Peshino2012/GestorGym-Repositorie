@@ -99,6 +99,23 @@ export default async function ConfiguracionPage() {
         </div>
 
         <div>
+          <label htmlFor="publicSiteUrl" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            Sitio web público (opcional)
+          </label>
+          <input
+            id="publicSiteUrl"
+            name="publicSiteUrl"
+            type="url"
+            defaultValue={gym.publicSiteUrl ?? ""}
+            placeholder="https://tugimnasio.com.ar"
+            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Agrega un acceso directo arriba de todo el panel para abrirlo con un clic.
+          </p>
+        </div>
+
+        <div>
           <label htmlFor="logo" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
             Logo (opcional)
           </label>

@@ -58,6 +58,7 @@ export default async function AppLayout({
       gymLabel={gymLabel}
       gymName={gym.name}
       gymLogoUrl={gym.logoUrl}
+      publicSiteUrl={gym.publicSiteUrl}
       logoutAction={logoutAction}
     >
       {children}
