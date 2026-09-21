@@ -29,7 +29,12 @@ export async function GET(req: NextRequest) {
       isPlanesModuleEnabled(),
     ]);
 
-  const toAbsolute = (url: string | null) => (url ? `${origin}${url}` : null);
+  // Vercel Blob uploads (production) are already-absolute URLs; local-disk
+  // uploads (master/dev) are stored as "/uploads/...". Only the second kind
+  // needs an origin prepended — doing it unconditionally would mangle an
+  // already-absolute URL into "<origin>/https://...blob...".
+  const toAbsolute = (url: string | null) =>
+    url ? (url.startsWith("/") ? `${origin}${url}` : url) : null;
 
   return NextResponse.json({
     gym: {
@@ -37,6 +42,7 @@ export async function GET(req: NextRequest) {
       address: gym.address,
       phone: gym.phone,
       email: gym.email,
+      logoUrl: toAbsolute(gym.logoUrl),
     },
     plans: plans.map((p) => ({
       id: p.id,
