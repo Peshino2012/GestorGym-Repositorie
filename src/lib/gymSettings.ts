@@ -10,6 +10,7 @@ export async function getGymSettings() {
       phone: null,
       email: null,
       logoUrl: null,
+      publicSiteUrl: null,
       themeColor: null,
       mercadoPagoAccessToken: null,
       mercadoPagoWebhookSecret: null,

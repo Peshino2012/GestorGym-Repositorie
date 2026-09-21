@@ -13,6 +13,7 @@ export async function updateGymSettings(formData: FormData) {
   const address = String(formData.get("address") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const publicSiteUrl = String(formData.get("publicSiteUrl") ?? "").trim();
   const logo = formData.get("logo");
   const checkinEnabled = formData.get("checkinEnabled") === "on";
 
@@ -30,6 +31,7 @@ export async function updateGymSettings(formData: FormData) {
       address,
       phone,
       email,
+      publicSiteUrl: publicSiteUrl || null,
       logoUrl,
       checkinEnabled,
     },
@@ -38,6 +40,7 @@ export async function updateGymSettings(formData: FormData) {
       address,
       phone,
       email,
+      publicSiteUrl: publicSiteUrl || null,
       checkinEnabled,
       ...(logoUrl ? { logoUrl } : {}),
     },

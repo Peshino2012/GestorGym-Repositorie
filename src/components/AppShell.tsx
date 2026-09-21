@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Globe } from "lucide-react";
 import Sidebar from "./Sidebar";
 
 export default function AppShell({
@@ -17,6 +17,7 @@ export default function AppShell({
   gymLabel,
   gymName,
   gymLogoUrl,
+  publicSiteUrl,
   logoutAction,
   children,
 }: {
@@ -32,6 +33,7 @@ export default function AppShell({
   gymLabel?: string;
   gymName?: string;
   gymLogoUrl?: string | null;
+  publicSiteUrl?: string | null;
   logoutAction: () => void;
   children: ReactNode;
 }) {
@@ -81,6 +83,17 @@ export default function AppShell({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            {publicSiteUrl && (
+              <a
+                href={publicSiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary sm:px-3"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Ver sitio web</span>
+              </a>
+            )}
             <span className="hidden text-sm font-medium sm:inline">{userName}</span>
             <form action={logoutAction}>
               <button

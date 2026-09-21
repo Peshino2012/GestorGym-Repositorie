@@ -182,6 +182,10 @@ model GymSettings {
   phone           String?
   email           String?
   logoUrl         String?
+  // The gym's own public marketing site (a separate deployment/repo from
+  // this admin panel) — lets the panel show a direct link to it instead
+  // of the owner having to keep the URL somewhere themselves.
+  publicSiteUrl   String?
   // HSL triplet ("145 84% 19%", no hsl()/commas — same format as the
   // --primary custom property it overrides) sampled from the gym's own
   // logo, so their panel reads as their own product instead of visibly
