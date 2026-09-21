@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getGymSettings } from "@/lib/gymSettings";
 import { fetchMercadoPagoPayment, verifyMercadoPagoSignature } from "@/lib/mercadopago";
 import { applyPaymentPaid } from "@/lib/payments";
 
@@ -17,20 +18,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-  if (secret) {
+  const gym = await getGymSettings();
+
+  if (gym.mercadoPagoWebhookSecret) {
     const valid = verifyMercadoPagoSignature({
       xSignature: req.headers.get("x-signature"),
       xRequestId: req.headers.get("x-request-id"),
       dataId: String(dataId),
-      secret,
+      secret: gym.mercadoPagoWebhookSecret,
     });
     if (!valid) {
       return NextResponse.json({ error: "Firma inválida" }, { status: 401 });
     }
   }
 
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const accessToken = gym.mercadoPagoAccessToken;
   if (!accessToken) {
     return NextResponse.json({ error: "Mercado Pago no está configurado" }, { status: 500 });
   }

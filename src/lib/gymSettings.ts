@@ -11,6 +11,8 @@ export async function getGymSettings() {
       email: null,
       logoUrl: null,
       themeColor: null,
+      mercadoPagoAccessToken: null,
+      mercadoPagoWebhookSecret: null,
       checkinEnabled: false,
       classesEnabled: false,
       horariosEnabled: false,
