@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { TriangleAlert } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, parseDateInput, toDateInputValue } from "@/lib/format";
 import { computeNextDueDate } from "@/lib/billing";
 import { displayPaymentStatus } from "@/lib/paymentStatus";
 import MemberCombobox from "@/components/MemberCombobox";
@@ -34,7 +34,9 @@ export default function NewPaymentForm({
   action: (formData: FormData) => void;
 }) {
   const amountRef = useRef<HTMLInputElement>(null);
+  const paidAtRef = useRef<HTMLInputElement>(null);
   const dueDateRef = useRef<HTMLInputElement>(null);
+  const today = toDateInputValue(new Date());
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loadingHistory, startHistoryTransition] = useTransition();
@@ -50,15 +52,28 @@ export default function NewPaymentForm({
     };
   }, [selectedMemberId]);
 
+  // The next cobro's due date is one cycle after whenever this one was
+  // actually paid — which for a backdated entry isn't today, so both the
+  // plan picker and the "fecha de pago" field need to recompute it.
+  function recomputeDueDate(planId: string) {
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan || !dueDateRef.current) return;
+    const paidAt = paidAtRef.current?.value ? parseDateInput(paidAtRef.current.value) : new Date();
+    dueDateRef.current.value = format(computeNextDueDate(paidAt, plan.billingCycle), "yyyy-MM-dd");
+  }
+
   function handlePlanChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const plan = plans.find((p) => p.id === e.target.value);
     if (!plan) return;
     if (amountRef.current) {
       amountRef.current.value = String(plan.price);
     }
-    if (dueDateRef.current) {
-      dueDateRef.current.value = format(computeNextDueDate(new Date(), plan.billingCycle), "yyyy-MM-dd");
-    }
+    recomputeDueDate(plan.id);
+  }
+
+  function handlePaidAtChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const planId = (e.target.form?.elements.namedItem("planId") as HTMLSelectElement | null)?.value;
+    if (planId) recomputeDueDate(planId);
   }
 
   const selectedMember = members.find((m) => m.id === selectedMemberId);
@@ -162,6 +177,24 @@ export default function NewPaymentForm({
         />
       </div>
       <div>
+        <label htmlFor="paidAt" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+          Fecha de pago
+        </label>
+        <input
+          ref={paidAtRef}
+          id="paidAt"
+          name="paidAt"
+          type="date"
+          max={today}
+          defaultValue={today}
+          onChange={handlePaidAtChange}
+          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Hoy por defecto — cambiala si estás cargando un cobro de otro día (o migrando datos de otro sistema).
+        </p>
+      </div>
+      <div>
         <label htmlFor="dueDate" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
           Vencimiento
         </label>
@@ -174,7 +207,7 @@ export default function NewPaymentForm({
           className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          Se completa solo según el plan elegido y la fecha de hoy; podés editarla si hace falta.
+          Se completa solo según el plan elegido y la fecha de pago; podés editarla si hace falta.
         </p>
       </div>
       <button
