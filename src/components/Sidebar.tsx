@@ -133,7 +133,12 @@ export default function Sidebar({
         </button>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-3">
+      {/* overflow-y-auto is the actual fix here: without it, a short
+          viewport (an old/small laptop screen) just clips whatever nav
+          items don't fit, with no way to reach them — no scrollbar, no
+          scroll gesture, nothing. The header above stays put; only this
+          list scrolls. */}
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
