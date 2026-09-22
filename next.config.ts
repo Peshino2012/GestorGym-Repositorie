@@ -12,6 +12,35 @@ const SECURITY_HEADERS = [
   // logs) but never the full path/query, which can carry tokens or PII in
   // this app's URLs.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Forces HTTPS for a year, including subdomains, and opts into browsers'
+  // preload lists — this app should never be reachable over plain HTTP.
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+  // No page here needs the camera, microphone, or geolocation — denying
+  // them outright means a future XSS/dependency bug can't abuse them even
+  // if it gets script execution.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // 'unsafe-inline' on script/style (not a nonce setup) because Next's App
+  // Router streams RSC hydration through inline <script> tags — a stricter
+  // nonce-based CSP is possible but needs its own careful rollout, not a
+  // one-line addition. Even with that relaxation, this still blocks the
+  // things that matter most for a login-gated admin panel: loading a
+  // THIRD-PARTY script, framing this app in someone else's page, exfiltrating
+  // data to an arbitrary origin (connect-src), and hijacking a form's
+  // submission target.
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' https://*.public.blob.vercel-storage.com data:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; "),
+  },
 ];
 
 const nextConfig: NextConfig = {

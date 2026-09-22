@@ -3,11 +3,28 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getGymSettings } from "@/lib/gymSettings";
 
+// Re-checks `active`/`role` against the DB on every call instead of
+// trusting the JWT's copy — the token is only refreshed at login, so
+// without this, deactivating a user or demoting an OWNER to STAFF had no
+// effect on an already-open session until it expired from 10 minutes of
+// inactivity (see auth.config.ts's SESSION_TIMEOUT_SECONDS).
 export async function requireOwner() {
   const session = await auth();
-  if (session?.user?.role !== "OWNER") {
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { active: true, role: true },
+  });
+  if (!user?.active) {
+    redirect("/api/auth/deactivated");
+  }
+  if (user.role !== "OWNER") {
     redirect("/dashboard");
   }
+
   return session;
 }
 
