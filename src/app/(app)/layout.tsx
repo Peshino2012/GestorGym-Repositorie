@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import AppShell from "@/components/AppShell";
 import { db } from "@/lib/db";
@@ -28,20 +29,30 @@ export default async function AppLayout({
   let canAccessPlanes = true;
   let canAccessCheckin = true;
 
-  if (session?.user?.role === "STAFF" && session.user.id) {
-    const permissions = await db.user.findUnique({
+  // Re-checks `active` against the DB on every page view instead of
+  // trusting the JWT's copy — the token is only refreshed at login, so
+  // without this, deactivating a user had no effect on an already-open
+  // session until it expired from 10 minutes of inactivity.
+  if (session?.user?.id) {
+    const user = await db.user.findUnique({
       where: { id: session.user.id },
       select: {
+        active: true,
         canAccessClasses: true,
         canAccessHorarios: true,
         canAccessPlanes: true,
         canAccessCheckin: true,
       },
     });
-    canAccessClasses = permissions?.canAccessClasses ?? true;
-    canAccessHorarios = permissions?.canAccessHorarios ?? true;
-    canAccessPlanes = permissions?.canAccessPlanes ?? true;
-    canAccessCheckin = permissions?.canAccessCheckin ?? true;
+    if (!user?.active) {
+      redirect("/api/auth/deactivated");
+    }
+    if (session.user.role === "STAFF") {
+      canAccessClasses = user.canAccessClasses;
+      canAccessHorarios = user.canAccessHorarios;
+      canAccessPlanes = user.canAccessPlanes;
+      canAccessCheckin = user.canAccessCheckin;
+    }
   }
 
   return (
