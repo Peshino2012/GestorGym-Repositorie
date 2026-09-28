@@ -32,6 +32,8 @@ export default async function SocioDetailPage({
 
   if (!member) notFound();
 
+  const hasEverPaid = member.payments.some((p) => p.status === "PAID");
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border bg-surface p-6">
@@ -115,7 +117,7 @@ export default async function SocioDetailPage({
                   <p className="text-xs text-muted-foreground">Vence {formatDate(p.dueDate)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={displayPaymentStatus(p)} />
+                  <StatusBadge status={displayPaymentStatus(p, hasEverPaid)} />
                   {p.status === "PAID" && (
                     <form action={undoMarkPaid.bind(null, p.id)}>
                       <button
