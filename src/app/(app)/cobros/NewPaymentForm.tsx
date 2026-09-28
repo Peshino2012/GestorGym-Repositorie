@@ -76,6 +76,7 @@ export default function NewPaymentForm({
     if (planId) recomputeDueDate(planId);
   }
 
+  const hasEverPaid = history.some((h) => h.status === "PAID");
   const selectedMember = members.find((m) => m.id === selectedMemberId);
   const hasActivePayment = membersWithActivePayment.includes(selectedMemberId);
   const blocked = Boolean(selectedMemberId) && hasActivePayment;
@@ -121,7 +122,7 @@ export default function NewPaymentForm({
                         : `Vence ${formatDate(h.dueDate)}`}
                     </span>
                     <span className="font-medium">{formatCurrency(h.amount)}</span>
-                    <StatusBadge status={displayPaymentStatus(h)} />
+                    <StatusBadge status={displayPaymentStatus(h, hasEverPaid)} />
                   </li>
                 ))}
               </ul>
